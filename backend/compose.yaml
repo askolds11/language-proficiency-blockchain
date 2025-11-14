@@ -1,0 +1,7 @@
+﻿services:
+  language-proficiency-blockchain:
+    image: language-proficiency-blockchain
+    build:
+      context: .
+      dockerfile: language-proficiency-blockchain/Dockerfile
+
