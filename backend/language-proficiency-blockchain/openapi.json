@@ -27,10 +27,128 @@
           }
         }
       }
+    },
+    "/api/example/{id}": {
+      "get": {
+        "tags": [
+          "Example"
+        ],
+        "summary": "Example endpoint that returns an example",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Example's id",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns example if id &lt; 10",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExampleResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If id &gt;= 10"
+          }
+        }
+      }
+    },
+    "/api/example": {
+      "post": {
+        "tags": [
+          "Example"
+        ],
+        "summary": "Example endpoint that returns an example",
+        "requestBody": {
+          "description": "Example",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExampleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Returns example if id &lt; 10",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExampleResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "If id &gt;= 10"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "ExampleRequest": {
+        "required": [
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Id of the Example",
+            "format": "int32"
+          }
+        },
+        "description": "Example request",
+        "example": {
+          "id": 1
+        }
+      },
+      "ExampleResponse": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Id of the Example",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the Example"
+          }
+        },
+        "description": "Example response",
+        "example": {
+          "id": 1,
+          "name": "1"
+        }
+      },
       "WeatherForecast": {
         "required": [
           "date",
@@ -72,6 +190,9 @@
   "tags": [
     {
       "name": "language-proficiency-blockchain"
+    },
+    {
+      "name": "Example"
     }
   ]
 }
