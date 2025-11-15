@@ -1,3 +1,4 @@
+using language_proficiency_blockchain;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,8 @@ app.MapGet("/weatherforecast", () =>
         return forecast;
     })
     .WithName("GetWeatherForecast");
+
+app.MapGroup("api").MapEndpoints();
 
 app.Run();
 
