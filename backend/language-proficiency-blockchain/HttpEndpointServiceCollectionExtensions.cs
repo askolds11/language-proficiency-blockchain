@@ -20,6 +20,12 @@ public static partial class HttpEndpointServiceCollectionExtensions
     )]
     public static partial IEndpointRouteBuilder MapEndpoints(this IEndpointRouteBuilder builder);
 
+    /// <summary>
+    /// Invokes the static <c>MapEndpoint</c> method on the specified endpoint type
+    /// to register its routes on the provided builder.
+    /// </summary>
+    /// <param name="builder">Endpoint route builder.</param>
+    /// <typeparam name="T">Endpoint type implementing <see cref="IEndpoint"/>.</typeparam>
     private static void MapEndpoint<T>(IEndpointRouteBuilder builder) where T : IEndpoint
     {
         T.MapEndpoint(builder);

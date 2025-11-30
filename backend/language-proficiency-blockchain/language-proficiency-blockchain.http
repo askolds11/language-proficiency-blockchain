@@ -4,3 +4,79 @@ GET {{language_proficiency_blockchain_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+# Blockchain API examples
+
+## Get local node public key
+GET {{language_proficiency_blockchain_HostAddress}}/api/blockchain/node-info
+Accept: application/json
+
+###
+
+## List nodes
+GET {{language_proficiency_blockchain_HostAddress}}/api/blockchain/nodes
+Accept: application/json
+
+###
+
+## Get full chain
+GET {{language_proficiency_blockchain_HostAddress}}/api/blockchain/chain
+Accept: application/json
+
+###
+
+## Propose a new node
+# Replace the placeholder values below. "signatureBase64" should be a signature of the concatenated string
+# "publicKeyPem|address" created with the node's private key.
+POST {{language_proficiency_blockchain_HostAddress}}/api/blockchain/nodes
+Content-Type: application/json
+Accept: application/json
+
+{
+  "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nREPLACE_WITH_BASE64_KEY\n-----END PUBLIC KEY-----\n",
+  "address": "my-node-address.example.com",
+  "signatureBase64": "REPLACE_WITH_BASE64_SIGNATURE"
+}
+
+###
+
+## Approve a node
+# Path parameter {id} is the proposed node's ID to approve.
+# Body field "approverNodeId" is the GUID of the local approved node issuing the approval.
+# "signatureBase64" should be a signature of the string "{id}|{approverNodeId}" by the approver's private key.
+POST {{language_proficiency_blockchain_HostAddress}}/api/blockchain/nodes/{{id}}
+    ?approve
+Content-Type: application/json
+Accept: application/json
+
+{
+  "approverNodeId": "00000000-0000-0000-0000-000000000001",
+  "signatureBase64": "REPLACE_WITH_BASE64_SIGNATURE"
+}
+
+###
+
+## Submit a test result to the blockchain
+# "signatureBase64" should be a signature of the string
+# "testId|studentId|institutionId|score|submittedByNodeId|timestamp" by the submitter node's private key.
+POST {{language_proficiency_blockchain_HostAddress}}/api/blockchain/results
+Content-Type: application/json
+Accept: application/json
+
+{
+  "testId": "TOEFL-2025-ABC123",
+  "studentId": "student-42",
+  "institutionId": "uni-1000",
+  "score": "115",
+  "submittedByNodeId": "00000000-0000-0000-0000-000000000001",
+  "timestamp": "2025-01-01T12:00:00Z",
+  "signatureBase64": "REPLACE_WITH_BASE64_SIGNATURE"
+}
+
+###
+
+## Get a submitted test result by id
+GET {{language_proficiency_blockchain_HostAddress}}/api/blockchain/results/{{resultId}}
+Accept: application/json
+
+###
