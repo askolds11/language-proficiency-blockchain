@@ -1,81 +1,63 @@
 using System.Security.Cryptography;
 using System.Text;
+using language_proficiency_blockchain.Options;
+using Microsoft.Extensions.Options;
 
 namespace language_proficiency_blockchain.services;
 
 /// <summary>
 /// Provides cryptographic utilities used by the application, including
-/// hashing, signing with a locally generated ephemeral RSA key pair,
+/// hashing, signing with an RSA private key,
 /// and signature verification using a provided public key in PEM format.
 /// </summary>
-public class CryptoService
+internal sealed class CryptoService
 {
-    private readonly RSA _rsa;
-    public string PublicKeyPem { get; }
+    /// <summary>
+    /// Private key
+    /// </summary>
+    private readonly IOptionsMonitor<RsaKeyHolder> _rsaOptions;
+    
+    private RSA Rsa => _rsaOptions.CurrentValue.PrivateKey;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="CryptoService"/> class and
-    /// generates an ephemeral RSA key pair for the current process.
+    /// Initializes a new instance of the <see cref="CryptoService"/> class.
     /// </summary>
-    public CryptoService()
+    public CryptoService(IOptionsMonitor<RsaKeyHolder> rsaOptions)
     {
-        // For demo/dev: generate ephemeral keypair on startup.
-        _rsa = RSA.Create(2048);
-        PublicKeyPem = ExportPublicKeyPem(_rsa);
+        _rsaOptions = rsaOptions;
     }
 
     /// <summary>
-    /// Computes a lowercase hexadecimal SHA-256 hash for the given input string.
+    /// Computes SHA-256 hash for the given input string.
     /// </summary>
     /// <param name="input">UTF-8 text to hash.</param>
-    /// <returns>Lowercase hex-encoded SHA-256 string.</returns>
-    public static string ComputeSha256Hex(string input)
+    /// <returns>SHA-256 hash byte array.</returns>
+    public static byte[] ComputeSha256Hash(string input)
     {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(input));
-        return Convert.ToHexString(bytes).ToLowerInvariant();
+        return SHA256.HashData(Encoding.UTF8.GetBytes(input));
     }
 
     /// <summary>
-    /// Signs the provided UTF-8 text using the local RSA private key and returns
-    /// the signature as a Base64 string.
+    /// Signs the provided hash using the local RSA private key and returns the signed hash.
     /// </summary>
-    /// <param name="input">Text to sign.</param>
-    /// <returns>Base64-encoded PKCS#1 v1.5 signature over SHA-256.</returns>
-    public string SignToBase64(string input)
+    /// <param name="hash">Hash to sign.</param>
+    /// <returns>Hash signed with SHA-256.</returns>
+    public byte[] SignHash(byte[] hash)
     {
-        var data = Encoding.UTF8.GetBytes(input);
-        var sig = _rsa.SignData(data, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-        return Convert.ToBase64String(sig);
+        return Rsa.SignData(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
     }
 
     /// <summary>
-    /// Verifies a Base64 signature for the given input using a public key in PEM format.
+    /// Verifies a signed hash for the given input data using a public key.
     /// </summary>
-    /// <param name="input">Original text that was signed.</param>
-    /// <param name="signatureBase64">Base64-encoded signature to verify.</param>
-    /// <param name="publicKeyPem">RSA public key in PEM format.</param>
+    /// <param name="data">Data to check</param>
+    /// <param name="hash">Signed hash</param>
+    /// <param name="publicKey">Public key</param>
     /// <returns><c>true</c> if signature is valid; otherwise <c>false</c>.</returns>
-    public static bool VerifyWithPublicPem(string input, string signatureBase64, string publicKeyPem)
+    public static bool VerifyHash(byte[] data, byte[] hash, byte[] publicKey)
     {
         using var rsa = RSA.Create();
-        rsa.ImportFromPem(publicKeyPem);
-        var data = Encoding.UTF8.GetBytes(input);
-        var sig = Convert.FromBase64String(signatureBase64);
-        return rsa.VerifyData(data, sig, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-    }
-
-    /// <summary>
-    /// Exports the provided RSA public key to PEM format.
-    /// </summary>
-    /// <param name="rsa">RSA instance containing the public key.</param>
-    /// <returns>PEM-formatted public key string.</returns>
-    private static string ExportPublicKeyPem(RSA rsa)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("-----BEGIN PUBLIC KEY-----");
-        sb.AppendLine(Convert.ToBase64String(rsa.ExportSubjectPublicKeyInfo(), Base64FormattingOptions.InsertLineBreaks));
-        sb.AppendLine("-----END PUBLIC KEY-----");
-        return sb.ToString();
+        rsa.ImportRSAPublicKey(publicKey, out _);
+        return rsa.VerifyData(data, hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
     }
 }
