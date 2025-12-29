@@ -1,10 +1,12 @@
 using System.Data.Common;
 using language_proficiency_blockchain.Database;
+using language_proficiency_blockchain.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Npgsql;
 using Testcontainers.PostgreSql;
 using TUnit.Core.Interfaces;
@@ -38,6 +40,16 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncI
             {
                 services.Remove(dbConnectionDescriptor);
             }
+            
+            var rsaMonitorDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IOptionsMonitor<RsaKeyHolder>));
+            if (rsaMonitorDescriptor is not null)
+            {
+                services.Remove(rsaMonitorDescriptor);
+            }
+            
+            var rsaFixture = new RsaKeyFixture();
+            services.AddSingleton(rsaFixture);
+            services.AddSingleton<IOptionsMonitor<RsaKeyHolder>>(rsaFixture.RsaOptionsMonitor);
 
             services.AddSingleton<DbConnection>(_ =>
             {

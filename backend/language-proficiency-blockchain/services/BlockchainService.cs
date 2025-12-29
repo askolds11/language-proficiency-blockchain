@@ -2,60 +2,69 @@ using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels;
 using language_proficiency_blockchain.HashModels.Interfaces;
+using language_proficiency_blockchain.HashModels.v1;
 using Microsoft.EntityFrameworkCore;
 
 namespace language_proficiency_blockchain.services;
 
 /// <summary>
-/// Provides core blockchain operations such as adding blocks, submitting test results,
-/// proposing/approving nodes, and retrieving the chain.
+/// Core blockchain operations: block proposal validation and typed block append helpers.
 /// </summary>
-internal class BlockchainService(
-    AppDbContext db,
-    CryptoService cryptoService
-    )
+internal sealed class BlockchainService(AppDbContext db, CryptoService cryptoService)
 {
-    private const int ApprovalThreshold = 2; // minimal demo threshold
-    // Serialize block appends within a single process to ensure consistent indexing and prev-hash chaining
     private static readonly SemaphoreSlim BlockAppendLock = new(1, 1);
 
+    public record BlockSignature(Guid InstitutionId, byte[] SignedHash);
+
     /// <summary>
-    /// Appends a new block to the chain. This method serializes access to ensure
-    /// consistent indexing and previous-hash chaining.
+    /// Validates a proposed block by recomputing its hash with PrevHash cleared, and verifying the provided signature.
+    /// If valid, signs the hash with the local private key and returns the signed hash.
     /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    public async Task AddBlockAsync(BlockBase blockBase, CancellationToken ct = default)
+    public byte[] ProposeBlockAsync(BlockBase proposedBlock, byte[] providedHash, byte[] providedSignedHash,
+        byte[] proposerPublicKey)
+    {
+        var canonical = StripPrevHash(proposedBlock);
+        var expectedHash = Hasher.HashBlock(canonical);
+
+        if (!providedHash.SequenceEqual(expectedHash))
+        {
+            throw new InvalidOperationException("Hash mismatch.");
+        }
+
+        if (!CryptoService.VerifyHash(providedHash, providedSignedHash, proposerPublicKey))
+        {
+            throw new InvalidOperationException("Signature verification failed.");
+        }
+
+        return cryptoService.SignHash(expectedHash);
+    }
+
+    public async Task<BlockEntity> AddInstitutionBlockAsync(
+        Guid blockId,
+        Guid institutionId,
+        string institutionName,
+        IReadOnlyCollection<BlockSignature> signatures,
+        CancellationToken ct = default)
     {
         await BlockAppendLock.WaitAsync(ct);
         try
         {
-            //
-            //
-            // // Fetch the latest block consistently while holding the lock
-            var last = await db.Blocks
-                .AsNoTracking()
-                .Where(e => !db.Blocks.Any(x => x.PrevId == e.Id))
-                .FirstOrDefaultAsync(ct);
-            // var index = (last?.Index ?? 0) + 1;
-            // var prevHash = last?.Hash ?? string.Empty;
-            // var timestamp = DateTime.UtcNow;
-            //
-            // var payload = $"{index}|{type}|{refId}|{dataHash}|{prevHash}|{createdByNodeId}|{timestamp:O}";
-            // var hash = CryptoService.ComputeSha256Hash(payload);
-            // var signatureBase64 = _crypto.SignHash(payload);
-            // var block = new Block
-            // {
-            //     Type = type,
-            //     RefId = refId,
-            //     PrevHash = prevHash,
-            //     CreatedByNodeId = createdByNodeId,
-            //     SignatureBase64 = signatureBase64,
-            //     Timestamp = timestamp,
-            //     Hash = hash
-            // };
-            // _db.Blocks.Add(block);
-            // await _db.SaveChangesAsync(ct);
-            // return block;
+            var institution = await db.Institutions.FirstOrDefaultAsync(x => x.Id == institutionId, ct)
+                              ?? throw new InvalidOperationException("Institution must exist before adding its block.");
+            if (institution.BlockId is not null)
+            {
+                throw new InvalidOperationException("Institution already has a block.");
+            }
+
+            var (prevId, prevHash) = await GetTailAsync(ct);
+            var hashable = new HashableInstitutionV1(prevHash, institutionId, institutionName);
+            var hash = Hasher.HashBlock(hashable);
+            var authorId = await ValidateQuorumAsync(hash, signatures, ct);
+            var block = await PersistBlockAsync(blockId, BlockType.Institution, prevId, prevHash, authorId, hash, ct);
+
+            institution.BlockId = block.Id;
+            await db.SaveChangesAsync(ct);
+            return block;
         }
         finally
         {
@@ -63,110 +72,183 @@ internal class BlockchainService(
         }
     }
 
-    /// <summary>
-    /// Submits a test result, verifies the submitter's signature and approval status,
-    /// persists the result, and records a corresponding block.
-    /// </summary>
-    /// <param name="result">Test result to submit.</param>
-    /// <param name="signatureBase64">Base64-encoded signature of the canonical result.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The saved <see cref="TestResult"/>.</returns>
-    // public async Task<TestResult> SubmitTestResultAsync(TestResult result, string signatureBase64, CancellationToken ct = default)
-    // {
-    //     // Consensus: signature must match submitting node, and node approved
-    //     var node = await _db.Nodes.AsNoTracking().FirstOrDefaultAsync(n => n.Id == result.SubmittedByNodeId, ct);
-    //     if (node == null || !node.IsApproved)
-    //         throw new InvalidOperationException("Submitting node not approved");
-    //
-    //     var canonical = CanonicalizeResult(result);
-    //     if (!CryptoService.VerifyHash(canonical, signatureBase64, node.PublicKeyPem))
-    //         throw new InvalidOperationException("Invalid result signature");
-    //
-    //     // Compute data hash and store full data separately
-    //     result.DataHash = CryptoService.ComputeSha256Hash(canonical);
-    //     _db.TestResults.Add(result);
-    //     await _db.SaveChangesAsync(ct);
-    //
-    //     // Add block storing only hash
-    //     await AddBlockAsync(BlockType.TestResult, result.Id, result.DataHash, result.SubmittedByNodeId, ct);
-    //     return result;
-    // }
+    public async Task<BlockEntity> AddTestBlockAsync(
+        Guid blockId,
+        Guid testId,
+        Guid institutionId,
+        string maxScore,
+        string? name,
+        IReadOnlyCollection<BlockSignature> signatures,
+        CancellationToken ct = default)
+    {
+        await BlockAppendLock.WaitAsync(ct);
+        try
+        {
+            var institutionExists = await db.Institutions.AnyAsync(x => x.Id == institutionId, ct);
+            if (!institutionExists)
+            {
+                throw new InvalidOperationException("Institution must exist before adding a test.");
+            }
 
-    /// <summary>
-    /// Creates a new node proposal after verifying the node's self-signature that binds
-    /// its public key to its declared address.
-    /// </summary>
-    /// <param name="institution">Node to propose.</param>
-    /// <param name="signatureBase64">Base64-encoded self-signature.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The proposed <see cref="Institution"/> (not yet approved).</returns>
-    // public async Task<Institution> ProposeNodeAsync(Institution institution, string signatureBase64, CancellationToken ct = default)
-    // {
-    //     // The node submits its own proposal signed by its key confirming address and key binding
-    //     var canonical = $"{institution.PublicKeyPem}|{institution.Address}";
-    //     if (!CryptoService.VerifyHash(canonical, signatureBase64, institution.PublicKeyPem))
-    //         throw new InvalidOperationException("Invalid self-signature for node proposal");
-    //
-    //     institution.IsApproved = false;
-    //     _db.Nodes.Add(institution);
-    //     await _db.SaveChangesAsync(ct);
-    //     return institution;
-    // }
+            var (prevId, prevHash) = await GetTailAsync(ct);
+            var hashable = new HashableTestV1(prevHash, institutionId, testId, maxScore);
+            var hash = Hasher.HashBlock(hashable);
+            var authorId = await ValidateQuorumAsync(hash, signatures, ct);
+            var block = await PersistBlockAsync(blockId, BlockType.Test, prevId, prevHash, authorId, hash, ct);
 
-    /// <summary>
-    /// Records an approval for a node by a previously approved approver. Once the
-    /// threshold of approvals is reached, the node becomes approved and a block is added.
-    /// </summary>
-    /// <param name="nodeId">Identifier of the node being approved.</param>
-    /// <param name="approverNodeId">Identifier of the approving node.</param>
-    /// <param name="signatureBase64">Base64-encoded approval signature.</param>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>The created <see cref="NodeApproval"/>.</returns>
-    // public async Task<NodeApproval> ApproveNodeAsync(Guid nodeId, Guid approverNodeId, string signatureBase64, CancellationToken ct = default)
-    // {
-    //     var node = await _db.Nodes.FindAsync([nodeId], ct) ?? throw new InvalidOperationException("Node not found");
-    //     var approver = await _db.Nodes.FindAsync([approverNodeId], ct) ?? throw new InvalidOperationException("Approver not found");
-    //     if (!approver.IsApproved) throw new InvalidOperationException("Approver not approved");
-    //
-    //     var payload = $"approve|{nodeId}|{approverNodeId}";
-    //     if (!CryptoService.VerifyHash(payload, signatureBase64, approver.PublicKeyPem))
-    //         throw new InvalidOperationException("Invalid approval signature");
-    //
-    //     var approval = new NodeApproval
-    //     {
-    //         InstitutionId = nodeId,
-    //         ApproverNodeId = approverNodeId,
-    //         SignatureBase64 = signatureBase64
-    //     };
-    //     _db.NodeApprovals.Add(approval);
-    //     await _db.SaveChangesAsync(ct);
-    //
-    //     // Check threshold
-    //     var count = await _db.NodeApprovals.CountAsync(a => a.InstitutionId == nodeId, ct);
-    //     if (!node.IsApproved && count >= ApprovalThreshold)
-    //     {
-    //         node.IsApproved = true;
-    //         await _db.SaveChangesAsync(ct);
-    //
-    //         // Record block that node was added
-    //         await AddBlockAsync(BlockType.NodeAdded, nodeId, CryptoService.ComputeSha256Hash(node.PublicKeyPem), approverNodeId, ct);
-    //     }
-    //     return approval;
-    // }
+            var test = new TestEntity
+            {
+                Id = testId,
+                InstitutionId = institutionId,
+                BlockId = block.Id,
+                Name = name,
+                MaxScore = maxScore
+            };
 
-    /// <summary>
-    /// Retrieves the entire blockchain ordered by index.
-    /// </summary>
-    /// <param name="ct">Cancellation token.</param>
-    /// <returns>List of <see cref="Block"/> entries ordered by index.</returns>
-    // public Task<List<Block>> GetChainAsync(CancellationToken ct = default) => _db.Blocks.AsNoTracking().OrderBy(b => b.Index).ToListAsync(ct);
+            db.Tests.Add(test);
+            await db.SaveChangesAsync(ct);
+            return block;
+        }
+        finally
+        {
+            BlockAppendLock.Release();
+        }
+    }
 
-    /// <summary>
-    /// Builds a canonical string representation of a <see cref="TestResult"/>
-    /// used for hashing and signature verification.
-    /// </summary>
-    /// <param name="r">Test result.</param>
-    /// <returns>Canonical string representation.</returns>
-    // private static string CanonicalizeResult(TestResult r)
-    //     => $"{r.TestId}|{r.StudentId}|{r.InstitutionId}|{r.Score}|{r.Timestamp:O}|{r.SubmittedByNodeId}";
+    public async Task<BlockEntity> AddTestResultBlockAsync(
+        Guid blockId,
+        Guid testResultId,
+        Guid testId,
+        Guid studentId,
+        string score,
+        DateTimeOffset timestamp,
+        IReadOnlyCollection<BlockSignature> signatures,
+        CancellationToken ct = default)
+    {
+        await BlockAppendLock.WaitAsync(ct);
+        try
+        {
+            var test = await db.Tests.AsNoTracking().FirstOrDefaultAsync(x => x.Id == testId, ct)
+                       ?? throw new InvalidOperationException("Test must exist before adding a result.");
+
+            var studentExists = await db.Students.AsNoTracking().AnyAsync(x => x.Id == studentId, ct);
+            if (!studentExists)
+            {
+                db.Students.Add(new StudentEntity { Id = studentId, Name = null, Surname = null });
+            }
+
+            var (prevId, prevHash) = await GetTailAsync(ct);
+            var hashable = new HashableTestResultV1(prevHash, testId, testResultId, score);
+            var hash = Hasher.HashBlock(hashable);
+            var authorId = await ValidateQuorumAsync(hash, signatures, ct);
+            var block = await PersistBlockAsync(blockId, BlockType.TestResult, prevId, prevHash, authorId, hash, ct);
+            var result = new TestResultEntity
+            {
+                Id = testResultId,
+                TestId = testId,
+                BlockId = block.Id,
+                StudentId = studentId,
+                Score = score,
+                Timestamp = timestamp
+            };
+
+            db.TestResults.Add(result);
+            await db.SaveChangesAsync(ct);
+            return block;
+        }
+        finally
+        {
+            BlockAppendLock.Release();
+        }
+    }
+
+    private async Task<(Guid PrevId, byte[] PrevHash)> GetTailAsync(CancellationToken ct)
+    {
+        var tail = await db.Blocks
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                e => e.Id != e.PrevId && !db.Blocks.Any(x => x.PrevId == e.Id),
+                ct);
+
+        if (tail is not null)
+        {
+            return (tail.Id, tail.Hash);
+        }
+
+        var genesis = await db.Blocks
+                          .AsNoTracking()
+                          .FirstOrDefaultAsync(e => e.Id == e.PrevId, ct)
+                      ?? throw new InvalidOperationException("Blockchain is not initialized.");
+
+        return (genesis.Id, genesis.Hash);
+    }
+
+    private async Task<Guid> ValidateQuorumAsync(byte[] hash, IReadOnlyCollection<BlockSignature> signatures,
+        CancellationToken ct)
+    {
+        var totalInstitutions = await db.Institutions.CountAsync(ct);
+        if (totalInstitutions == 0)
+        {
+            throw new InvalidOperationException("No institutions available to sign.");
+        }
+
+        var quorum = (totalInstitutions + 1) / 2; // at least half, rounded up
+        var signerIds = signatures.Select(s => s.InstitutionId).Distinct().ToArray();
+
+        var institutions = await db.Institutions
+            .Where(i => signerIds.Contains(i.Id))
+            .ToDictionaryAsync(i => i.Id, ct);
+
+        var validSigners = new List<Guid>();
+        foreach (var sig in signatures)
+        {
+            if (!institutions.TryGetValue(sig.InstitutionId, out var inst))
+            {
+                continue;
+            }
+
+            var isValid = CryptoService.VerifyHash(hash, sig.SignedHash, inst.PublicKeyPem);
+            if (isValid && !validSigners.Contains(sig.InstitutionId))
+            {
+                validSigners.Add(sig.InstitutionId);
+            }
+        }
+
+        if (validSigners.Count < quorum)
+        {
+            throw new InvalidOperationException($"Insufficient signatures: {validSigners.Count}/{quorum} valid.");
+        }
+
+        return validSigners[0];
+    }
+
+    private async Task<BlockEntity> PersistBlockAsync(Guid blockId, BlockType type, Guid prevId, byte[] prevHash,
+        Guid? institutionId, byte[] hash, CancellationToken ct)
+    {
+        var signedHash = cryptoService.SignHash(hash);
+
+        var block = new BlockEntity
+        {
+            Id = blockId,
+            Type = type,
+            PrevId = prevId,
+            PrevHash = prevHash,
+            Hash = hash,
+            InstitutionId = institutionId,
+            SignedHash = signedHash,
+            Timestamp = DateTimeOffset.UtcNow
+        };
+
+        db.Blocks.Add(block);
+        await db.SaveChangesAsync(ct);
+        return block;
+    }
+
+    private static BlockBase StripPrevHash(BlockBase blockBase) => blockBase switch
+    {
+        HashableInstitutionV1 b => b with { PrevHash = [] },
+        HashableTestV1 b => b with { PrevHash = [] },
+        HashableTestResultV1 b => b with { PrevHash = [] },
+        _ => throw new InvalidOperationException("Unsupported block type.")
+    };
 }
