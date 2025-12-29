@@ -47,7 +47,7 @@ internal class TestResultEntity
     /// Navigation to the related student entity.
     /// </summary>
     [ForeignKey(nameof(StudentId))]
-    public required StudentEntity? Student { get; init; }
+    public StudentEntity? Student { get; init; }
     
     /// <summary>
     /// Navigation to the related test entity.

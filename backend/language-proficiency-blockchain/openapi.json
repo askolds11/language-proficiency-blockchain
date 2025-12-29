@@ -5,6 +5,123 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/blockchain/blocks/institution": {
+      "post": {
+        "tags": [
+          "Blockchain"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddInstitutionBlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blockchain/blocks/test": {
+      "post": {
+        "tags": [
+          "Blockchain"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTestBlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blockchain/blocks/testresult": {
+      "post": {
+        "tags": [
+          "Blockchain"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTestResultBlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/example/{id}": {
       "get": {
         "tags": [
@@ -80,9 +197,9 @@
         "tags": [
           "Internal"
         ],
-        "summary": "Proposes a new node to join the network. The proposal must be signed by the node's key.",
+        "summary": "Add a new institution.",
         "requestBody": {
-          "description": "Proposal payload including public key, address and signature.",
+          "description": "Institution payload.",
           "content": {
             "application/json": {
               "schema": {
@@ -112,6 +229,34 @@
   },
   "components": {
     "schemas": {
+      "AddInstitutionBlockRequest": {
+        "required": [
+          "blockId",
+          "institutionId",
+          "institutionName",
+          "signatures"
+        ],
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "institutionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "institutionName": {
+            "type": "string"
+          },
+          "signatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignedByInstitution"
+            }
+          }
+        }
+      },
       "AddInstitutionRequest": {
         "required": [
           "id",
@@ -140,6 +285,183 @@
           }
         },
         "description": "Request for adding an institution."
+      },
+      "AddTestBlockRequest": {
+        "required": [
+          "blockId",
+          "testId",
+          "institutionId",
+          "maxScore",
+          "name",
+          "signatures"
+        ],
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "institutionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maxScore": {
+            "type": "string"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "signatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignedByInstitution"
+            }
+          }
+        }
+      },
+      "AddTestResultBlockRequest": {
+        "required": [
+          "blockId",
+          "testResultId",
+          "testId",
+          "studentId",
+          "score",
+          "timestamp",
+          "signatures"
+        ],
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "testResultId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "score": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signatures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SignedByInstitution"
+            }
+          }
+        }
+      },
+      "BlockEntity": {
+        "required": [
+          "id",
+          "type",
+          "prevId",
+          "prevHash",
+          "hash",
+          "institutionId",
+          "signedHash",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the block.",
+            "format": "uuid"
+          },
+          "type": {
+            "description": "The semantic type of the block (e.g., BlockType.TestResult).",
+            "$ref": "#/components/schemas/BlockType"
+          },
+          "prevId": {
+            "type": "string",
+            "description": "Identifier of the previous block",
+            "format": "uuid"
+          },
+          "prevHash": {
+            "type": "string",
+            "description": "Hash of the previous block (hex-encoded). Empty for the genesis block.",
+            "format": "byte"
+          },
+          "hash": {
+            "type": "string",
+            "description": "Hash of the current block (hex-encoded) calculated from the block contents.",
+            "format": "byte"
+          },
+          "institutionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Identifier of the institution that created and signed the block.",
+            "format": "uuid"
+          },
+          "signedHash": {
+            "type": "string",
+            "description": "Signed block hash signed by Guid? BlockEntity.InstitutionId's private key.",
+            "format": "byte"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "UTC timestamp when the block was created.",
+            "format": "date-time"
+          },
+          "prevBlock": {
+            "description": "Navigation to the previous block entity.",
+            "$ref": "#/components/schemas/BlockEntity"
+          },
+          "institution": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Navigation to the related institution entity.",
+                "$ref": "#/components/schemas/InstitutionEntity"
+              }
+            ]
+          },
+          "institutionData": {
+            "description": "Navigation to the block's institution if relevant.",
+            "$ref": "#/components/schemas/InstitutionEntity"
+          },
+          "testData": {
+            "description": "Navigation to the block's test if relevant.",
+            "$ref": "#/components/schemas/TestEntity"
+          },
+          "testResultData": {
+            "description": "Navigation to the block's test result if relevant.",
+            "$ref": "#/components/schemas/TestResultEntity"
+          }
+        },
+        "description": "Represents a block in the blockchain containing immutable, signed data."
+      },
+      "BlockType": {
+        "enum": [
+          "FirstBlock",
+          "Institution",
+          "Test",
+          "TestResult"
+        ],
+        "description": "Defines the semantic category of a blockchain BlockEntity."
       },
       "ExampleRequest": {
         "required": [
@@ -188,10 +510,212 @@
           "id": 1,
           "name": "1"
         }
+      },
+      "InstitutionEntity": {
+        "required": [
+          "id",
+          "blockId",
+          "publicKeyPem",
+          "address"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the institution.",
+            "format": "uuid"
+          },
+          "blockId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Foreign key to the block",
+            "format": "uuid"
+          },
+          "publicKeyPem": {
+            "type": "string",
+            "description": "Public key of the institution in PEM format used to verify signatures.",
+            "format": "byte"
+          },
+          "address": {
+            "maxLength": 512,
+            "type": "string",
+            "description": "Optional human-readable address or endpoint of the institution."
+          },
+          "block": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/BlockEntity"
+              }
+            ]
+          }
+        },
+        "description": "Represents an institution that participates in the blockchain."
+      },
+      "SignedByInstitution": {
+        "required": [
+          "institutionId",
+          "signedHashBase64"
+        ],
+        "type": "object",
+        "properties": {
+          "institutionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "signedHashBase64": {
+            "type": "string"
+          }
+        }
+      },
+      "StudentEntity": {
+        "required": [
+          "id",
+          "name",
+          "surname"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "External identifier of the student as referenced by TestResultEntity.",
+            "format": "uuid"
+          },
+          "name": {
+            "maxLength": 256,
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional human-readable name of the student."
+          },
+          "surname": {
+            "maxLength": 256,
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional human-readable surname of the student."
+          }
+        },
+        "description": "Represents a student/subject whose language proficiency test results are recorded."
+      },
+      "TestEntity": {
+        "required": [
+          "id",
+          "institutionId",
+          "blockId",
+          "name",
+          "maxScore"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identifier of the test (e.g., exam/session code) as referenced by TestResult.TestId.",
+            "format": "uuid"
+          },
+          "institutionId": {
+            "type": "string",
+            "description": "Foreign key to the institution",
+            "format": "uuid"
+          },
+          "blockId": {
+            "type": "string",
+            "description": "Foreign key to the block",
+            "format": "uuid"
+          },
+          "name": {
+            "maxLength": 256,
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional human-readable name for the test."
+          },
+          "maxScore": {
+            "maxLength": 128,
+            "type": "string",
+            "description": "Max score for the test"
+          },
+          "institution": {
+            "$ref": "#/components/schemas/InstitutionEntity"
+          },
+          "block": {
+            "$ref": "#/components/schemas/BlockEntity"
+          }
+        },
+        "description": "Represents a language proficiency test/exam definition or session."
+      },
+      "TestResultEntity": {
+        "required": [
+          "id",
+          "testId",
+          "blockId",
+          "studentId",
+          "score",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Primary key of the record. Generated as a new Guid when the entity is created.",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "description": "Foreign key to the test definition taken by the student.",
+            "format": "uuid"
+          },
+          "blockId": {
+            "type": "string",
+            "description": "Foreign key to the block",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "Foreign key to the student who took the test.",
+            "format": "uuid"
+          },
+          "score": {
+            "maxLength": 128,
+            "type": "string",
+            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\nOptional; may be null if the score is not disclosed."
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp of when the result was recorded.",
+            "format": "date-time"
+          },
+          "student": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "description": "Navigation to the related student entity.",
+                "$ref": "#/components/schemas/StudentEntity"
+              }
+            ]
+          },
+          "testEntity": {
+            "description": "Navigation to the related test entity.",
+            "$ref": "#/components/schemas/TestEntity"
+          }
+        },
+        "description": "Represents a single language proficiency test result that is stored on-chain."
       }
     }
   },
   "tags": [
+    {
+      "name": "Blockchain"
+    },
     {
       "name": "Example"
     },

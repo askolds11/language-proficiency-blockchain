@@ -19,7 +19,7 @@ internal class InstitutionEntity
     /// <summary>
     /// Foreign key to the block
     /// </summary>
-    public required Guid? BlockId { get; init; }
+    public required Guid? BlockId { get; set; }
 
     /// <summary>
     /// Public key of the institution in PEM format used to verify signatures.
