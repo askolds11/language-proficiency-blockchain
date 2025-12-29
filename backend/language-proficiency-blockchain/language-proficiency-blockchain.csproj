@@ -53,4 +53,9 @@
     <ItemGroup>
         <InternalsVisibleTo Include="language-proficiency-blockchain.Tests" />
     </ItemGroup>
+
+
+    <ItemGroup>
+      <Folder Include="responses\" />
+    </ItemGroup>
 </Project>

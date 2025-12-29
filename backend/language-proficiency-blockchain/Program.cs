@@ -20,9 +20,9 @@ builder.Services
     .ValidateDataAnnotations();
 
 builder.Services.AddSingleton<IOptionsMonitor<RsaKeyHolder>, RsaKeyMonitor>();
-builder.Services.AddScoped<ExampleService>();
 builder.Services.AddSingleton<CryptoService>();
 builder.Services.AddScoped<BlockchainService>();
+builder.Services.AddScoped<InternalService>();
 
 var connectionStrings = builder.Configuration
     .GetSection(ConnectionStringsOptions.ConnectionStrings)

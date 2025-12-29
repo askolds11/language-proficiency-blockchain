@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels;
@@ -57,8 +58,8 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
 
-        var instId = await CreateInstitutionAsync(db, "inst-A");
-        var signerId = await CreateInstitutionAsync(db, "inst-B");
+        var instId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
+        var signerId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
 
         var (prevId, prevHash) = await GetTailAsync(db);
         var hashable = new HashableInstitutionV1(prevHash, instId, "Institution A");
@@ -85,8 +86,8 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
 
-        var instId = await CreateInstitutionAsync(db, "inst-A");
-        var signerId = await CreateInstitutionAsync(db, "inst-B");
+        var instId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
+        var signerId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
 
         var (prevId, prevHash) = await GetTailAsync(db);
         var testId = Guid.NewGuid();
@@ -113,8 +114,8 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
 
-        var instId = await CreateInstitutionAsync(db, "inst-A");
-        var signerId = await CreateInstitutionAsync(db, "inst-B");
+        var instId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
+        var signerId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
 
         var testId = Guid.NewGuid();
         {
@@ -156,9 +157,9 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
 
-        var instA = await CreateInstitutionAsync(db, "inst-A");
-        var instB = await CreateInstitutionAsync(db, "inst-B");
-        await CreateInstitutionAsync(db, "inst-C");
+        var instA = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
+        var instB = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
+        await CreateInstitutionAsync(scope.ServiceProvider, "inst-C");
 
         var (prevId, prevHash) = await GetTailAsync(db);
         var hashable = new HashableTestV1(prevHash, instA, Guid.NewGuid(), "100");
@@ -183,8 +184,8 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
 
-        var instId = await CreateInstitutionAsync(db, "inst-A");
-        var signerId = await CreateInstitutionAsync(db, "inst-B");
+        var instId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
+        var signerId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
 
         var testId = Guid.NewGuid();
         {
@@ -224,19 +225,26 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         await Assert.That(block.PrevId).IsEqualTo(prevIdResult);
     }
 
-    private async Task<Guid> CreateInstitutionAsync(AppDbContext db, string address)
+    private async Task<Guid> CreateInstitutionAsync(IServiceProvider services, string address)
     {
         var id = Guid.NewGuid();
-        var entity = new InstitutionEntity
-        {
-            Id = id,
-            BlockId = null,
-            Address = address,
-            PublicKeyPem = fixture.PublicKey.ExportRSAPublicKey()
-        };
-        db.Institutions.Add(entity);
-        await db.SaveChangesAsync();
+        var internalService = services.GetRequiredService<InternalService>();
+        var pem = ToPem(fixture.PublicKey.ExportSubjectPublicKeyInfo());
+        await internalService.AddInstitution(id, address, address, pem);
         return id;
+    }
+    
+    private static string ToPem(byte[] subjectPublicKeyInfo)
+    {
+        var base64 = Convert.ToBase64String(subjectPublicKeyInfo);
+        var sb = new StringBuilder();
+        sb.AppendLine("-----BEGIN PUBLIC KEY-----");
+        for (var i = 0; i < base64.Length; i += 64)
+        {
+            sb.AppendLine(base64.Substring(i, Math.Min(64, base64.Length - i)));
+        }
+        sb.Append("-----END PUBLIC KEY-----");
+        return sb.ToString();
     }
 
     private static async Task<(Guid prevId, byte[] prevHash)> GetTailAsync(AppDbContext db)

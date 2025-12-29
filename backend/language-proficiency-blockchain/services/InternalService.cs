@@ -34,4 +34,23 @@ internal class InternalService(
 
         await dbContext.SaveChangesAsync();
     }
+
+    public async Task AddStudent(Guid id, string? name, string? surname)
+    {
+        var exists = await dbContext.Students.AnyAsync(x => x.Id == id);
+        if (exists)
+        {
+            throw new Exception("Student already exists");
+        }
+
+        var student = new StudentEntity
+        {
+            Id = id,
+            Name = name,
+            Surname = surname
+        };
+
+        dbContext.Students.Add(student);
+        await dbContext.SaveChangesAsync();
+    }
 }
