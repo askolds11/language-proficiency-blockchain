@@ -4,5 +4,6 @@
     <File Path="compose.yaml" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="language-proficiency-blockchain.Tests/language-proficiency-blockchain.Tests.csproj" />
   <Project Path="language-proficiency-blockchain/language-proficiency-blockchain.csproj" />
 </Solution>

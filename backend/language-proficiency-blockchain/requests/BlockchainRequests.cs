@@ -60,9 +60,9 @@ public record ApproveNodeRequest(
 /// }
 /// </example>
 public record SubmitResultRequest(
-    [property: Required] string TestId,
-    [property: Required] string StudentId,
-    [property: Required] string InstitutionId,
+    [property: Required] Guid TestId,
+    [property: Required] Guid StudentId,
+    [property: Required] Guid InstitutionId,
     string? Score,
     [property: Required] Guid SubmittedByNodeId,
     [property: Required] DateTime Timestamp,

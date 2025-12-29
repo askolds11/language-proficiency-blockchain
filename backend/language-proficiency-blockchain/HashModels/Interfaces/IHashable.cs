@@ -1,0 +1,3 @@
+namespace language_proficiency_blockchain.HashModels.Interfaces;
+
+internal interface IHashable;

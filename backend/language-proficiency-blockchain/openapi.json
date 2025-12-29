@@ -5,29 +5,6 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/weatherforecast": {
-      "get": {
-        "tags": [
-          "language-proficiency-blockchain"
-        ],
-        "operationId": "GetWeatherForecast",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/WeatherForecast"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/example/{id}": {
       "get": {
         "tags": [
@@ -97,10 +74,73 @@
           }
         }
       }
+    },
+    "/api/internal/institution": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Proposes a new node to join the network. The proposal must be signed by the node's key.",
+        "requestBody": {
+          "description": "Proposal payload including public key, address and signature.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddInstitutionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AddInstitutionRequest": {
+        "required": [
+          "id",
+          "name",
+          "address",
+          "publicKeyPem"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the institution",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the institution"
+          },
+          "address": {
+            "type": "string",
+            "description": "Address of the institution"
+          },
+          "publicKeyPem": {
+            "type": "string",
+            "description": "Public key of the institution"
+          }
+        },
+        "description": "Request for adding an institution."
+      },
       "ExampleRequest": {
         "required": [
           "id"
@@ -148,51 +188,15 @@
           "id": 1,
           "name": "1"
         }
-      },
-      "WeatherForecast": {
-        "required": [
-          "date",
-          "temperatureC",
-          "summary"
-        ],
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "format": "date"
-          },
-          "temperatureC": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          },
-          "summary": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "temperatureF": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
-            "format": "int32"
-          }
-        }
       }
     }
   },
   "tags": [
     {
-      "name": "language-proficiency-blockchain"
+      "name": "Example"
     },
     {
-      "name": "Example"
+      "name": "Internal"
     }
   ]
 }
