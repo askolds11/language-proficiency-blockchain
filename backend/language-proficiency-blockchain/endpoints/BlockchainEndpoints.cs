@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.requests.Blockchain;
+using language_proficiency_blockchain.responses.Blockchain;
 using language_proficiency_blockchain.services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,7 @@ public class BlockchainEndpoints : IEndpoint
         group.MapPost("blocks/institution", AddInstitutionBlock);
         group.MapPost("blocks/test", AddTestBlock);
         group.MapPost("blocks/testresult", AddTestResultBlock);
+        group.MapPost("blocks/propose", ProposeBlock);
     }
 
     internal static async Task<Results<Ok<BlockEntity>, BadRequest<string>>> AddInstitutionBlock(
@@ -93,6 +95,30 @@ public class BlockchainEndpoints : IEndpoint
                 ct);
 
             return TypedResults.Ok(block);
+        }
+        catch (Exception ex)
+        {
+            return TypedResults.BadRequest(ex.Message);
+        }
+    }
+    
+    internal static async Task<Results<Ok<ProposeBlockResponse>, BadRequest<string>>> ProposeBlock(
+        [FromServices] BlockchainService chain,
+        [FromBody] ProposeBlockRequest req,
+        CancellationToken ct)
+    {
+        try
+        {
+            var hash = Convert.FromBase64String(req.HashBase64);
+            var signedHash = Convert.FromBase64String(req.SignedHashBase64);
+            
+            using var rsa = System.Security.Cryptography.RSA.Create();
+            rsa.ImportFromPem(req.ProposerPublicKeyPem);
+            var publicKeyBytes = rsa.ExportRSAPublicKey();
+
+            var resultSignedHash = chain.ProposeBlockAsync(req.Block, hash, signedHash, publicKeyBytes);
+            
+            return TypedResults.Ok(new ProposeBlockResponse(Convert.ToBase64String(resultSignedHash)));
         }
         catch (Exception ex)
         {
