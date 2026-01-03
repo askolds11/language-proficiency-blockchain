@@ -5,32 +5,16 @@ services:
       context: "/home/askolds/repos/language-proficiency-blockchain/backend"
       dockerfile: "language-proficiency-blockchain/Dockerfile"
       target: "base"
-      args:
-        BUILD_CONFIGURATION: "Debug"
     command: []
     entrypoint:
-    - "/opt/JetBrains/RiderDebuggerTools/linux-x64/JetBrains.Debugger.Worker"
-    - "--runtimeconfig"
-    - "/opt/JetBrains/RiderDebuggerTools/JetBrains.Debugger.Worker.runtimeconfig.json"
-    - "--mode=server"
-    - "--frontend-port=57000"
-    - "--backend-port=57200"
-    - "--roslyn-worker-port=57400"
-    - "--timeout=60"
+    - "dotnet"
+    - "/app/bin/Debug/net10.0/language-proficiency-blockchain.dll"
     environment:
       DOTNET_USE_POLLING_FILE_WATCHER: "true"
-      RIDER_DEBUGGER_LOG_DIR: "/var/opt/JetBrains/RiderDebuggerTools"
-      RESHARPER_LOG_CONF: "/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
     image: "language-proficiency-blockchain:dev"
-    ports:
-    - "127.0.0.1:57000:57000"
-    - "127.0.0.1:57200:57200"
-    - "127.0.0.1:57400:57400"
+    ports: []
     volumes:
     - "/home/askolds/repos/language-proficiency-blockchain/backend/language-proficiency-blockchain:/app:rw"
     - "/home/askolds/repos/language-proficiency-blockchain/backend:/src:rw"
     - "/home/askolds/.nuget/packages:/home/app/.nuget/packages"
-    - "/home/askolds/.local/share/JetBrains/RiderRemoteDebugger/2025.3.1/Linux64:/opt/JetBrains/RiderDebuggerTools"
-    - "/home/askolds/.local/share/JetBrains/Toolbox/apps/rider/bin/backend-log.xml:/etc/opt/JetBrains/RiderDebuggerTools/backend-log.xml"
-    - "/home/askolds/.cache/JetBrains/Rider2025.3/log/DebuggerWorker/JetBrains.Debugger.Worker.2025_12_29_16_13_47:/var/opt/JetBrains/RiderDebuggerTools:rw"
     working_dir: "/app"

@@ -19,6 +19,8 @@
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__AppDb: Host=language-proficiency-blockchain-db;Port=5432;Database=language_proficiency_blockchain;Username=postgres;Password=postgres
+    ports:
+        - "5001:8080"
     depends_on:
       - language-proficiency-blockchain-db
 
