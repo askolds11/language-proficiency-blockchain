@@ -10,7 +10,7 @@ namespace language_proficiency_blockchain.services;
 /// hashing, signing with an RSA private key,
 /// and signature verification using a provided public key in PEM format.
 /// </summary>
-internal sealed class CryptoService
+internal sealed class CryptoService : ICryptoService
 {
     /// <summary>
     /// Private key

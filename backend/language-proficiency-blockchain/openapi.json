@@ -122,6 +122,45 @@
         }
       }
     },
+    "/api/blockchain/blocks/propose": {
+      "post": {
+        "tags": [
+          "Blockchain"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposeBlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProposeBlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/internal/institution": {
       "post": {
         "tags": [
@@ -299,6 +338,23 @@
           }
         }
       },
+      "BlockBase": {
+        "type": "object",
+        "properties": {
+          "prevHash": {
+            "type": "string",
+            "format": "byte"
+          },
+          "version": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "BlockEntity": {
         "required": [
           "id",
@@ -437,6 +493,40 @@
           }
         },
         "description": "Represents an institution that participates in the blockchain."
+      },
+      "ProposeBlockRequest": {
+        "required": [
+          "block",
+          "hashBase64",
+          "signedHashBase64",
+          "proposerPublicKeyPem"
+        ],
+        "type": "object",
+        "properties": {
+          "block": {
+            "$ref": "#/components/schemas/BlockBase"
+          },
+          "hashBase64": {
+            "type": "string"
+          },
+          "signedHashBase64": {
+            "type": "string"
+          },
+          "proposerPublicKeyPem": {
+            "type": "string"
+          }
+        }
+      },
+      "ProposeBlockResponse": {
+        "required": [
+          "signedHashBase64"
+        ],
+        "type": "object",
+        "properties": {
+          "signedHashBase64": {
+            "type": "string"
+          }
+        }
       },
       "SignedByInstitution": {
         "required": [

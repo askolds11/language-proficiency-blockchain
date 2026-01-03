@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using language_proficiency_blockchain.Database;
-using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels;
 using language_proficiency_blockchain.HashModels.v1;
 using language_proficiency_blockchain.services;
@@ -18,7 +17,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
     public async Task ProposeBlockAsync_valid_signature_returns_signed_hash()
     {
         using var scope = Factory.Services.CreateScope();
-        var crypto = scope.ServiceProvider.GetRequiredService<CryptoService>();
+        var crypto = scope.ServiceProvider.GetRequiredService<ICryptoService>();
 
         var block = new HashableInstitutionV1([1, 2, 3], Guid.NewGuid(), "inst");
         var canonical = block with { PrevHash = [] };
@@ -36,7 +35,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
     public async Task ProposeBlockAsync_invalid_signature_throws()
     {
         using var scope = Factory.Services.CreateScope();
-        var crypto = scope.ServiceProvider.GetRequiredService<CryptoService>();
+        var crypto = scope.ServiceProvider.GetRequiredService<ICryptoService>();
 
         var block = new HashableInstitutionV1([], Guid.NewGuid(), "inst");
         var canonical = block with { PrevHash = [] };
@@ -57,18 +56,21 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
+        var crypto = scope.ServiceProvider.GetRequiredService<ICryptoService>();
 
         var instId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
         var signerId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
 
         var (prevId, prevHash) = await GetTailAsync(db);
-        var hashable = new HashableInstitutionV1(prevHash, instId, "Institution A");
-        var hash = Hasher.HashBlock(hashable);
+        var validateHashable = new HashableInstitutionV1([], instId, "Institution A");
+        var validateHash = Hasher.HashBlock(validateHashable);
         var signatures = new[]
         {
-            new BlockchainService.BlockSignature(signerId,
-                fixture.PrivateKey.SignData(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+            new BlockchainService.BlockSignature(signerId, crypto.SignHash(validateHash))
         };
+        
+        var hashable = new HashableInstitutionV1(prevHash, instId, "Institution A");
+        var hash = Hasher.HashBlock(hashable);
 
         var block = await svc.AddInstitutionBlockAsync(Guid.NewGuid(), instId, "Institution A", signatures);
 
@@ -89,14 +91,14 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var instId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
         var signerId = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
 
-        var (prevId, prevHash) = await GetTailAsync(db);
+        var (prevId, _) = await GetTailAsync(db);
         var testId = Guid.NewGuid();
-        var hashable = new HashableTestV1(prevHash, instId, testId, "100");
-        var hash = Hasher.HashBlock(hashable);
+        var validateHashable = new HashableTestV1([], instId, testId, "100");
+        var validateHash = Hasher.HashBlock(validateHashable);
         var signatures = new[]
         {
             new BlockchainService.BlockSignature(signerId,
-                fixture.PrivateKey.SignData(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                fixture.PrivateKey.SignData(validateHash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
         };
 
         var block = await svc.AddTestBlockAsync(Guid.NewGuid(), testId, instId, "100", "Lang Test", signatures);
@@ -119,26 +121,26 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
 
         var testId = Guid.NewGuid();
         {
-            var (prevId, prevHash) = await GetTailAsync(db);
-            var hashableTest = new HashableTestV1(prevHash, instId, testId, "100");
-            var hashTest = Hasher.HashBlock(hashableTest);
+            // var (prevId, prevHash) = await GetTailAsync(db);
+            var validateHashableTest = new HashableTestV1([], instId, testId, "100");
+            var validateHashTest = Hasher.HashBlock(validateHashableTest);
             var sigsTest = new[]
             {
                 new BlockchainService.BlockSignature(signerId,
-                    fixture.PrivateKey.SignData(hashTest, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                    fixture.PrivateKey.SignData(validateHashTest, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             };
             await svc.AddTestBlockAsync(Guid.NewGuid(), testId, instId, "100", "Lang Test", sigsTest);
         }
 
-        var (prevIdResult, prevHashResult) = await GetTailAsync(db);
+        var (prevIdResult, _) = await GetTailAsync(db);
         var resultId = Guid.NewGuid();
         var studentId = Guid.NewGuid();
-        var hashableResult = new HashableTestResultV1(prevHashResult, testId, resultId, "85");
-        var hashResult = Hasher.HashBlock(hashableResult);
+        var validateHashableResult = new HashableTestResultV1([], testId, resultId, "85");
+        var validateHashResult = Hasher.HashBlock(validateHashableResult);
         var sigsResult = new[]
         {
             new BlockchainService.BlockSignature(signerId,
-                fixture.PrivateKey.SignData(hashResult, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                fixture.PrivateKey.SignData(validateHashResult, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
         };
 
         var block = await svc.AddTestResultBlockAsync(Guid.NewGuid(), resultId, testId, studentId, "85",
@@ -161,7 +163,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var instB = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
         await CreateInstitutionAsync(scope.ServiceProvider, "inst-C");
 
-        var (prevId, prevHash) = await GetTailAsync(db);
+        var (_, prevHash) = await GetTailAsync(db);
         var hashable = new HashableTestV1(prevHash, instA, Guid.NewGuid(), "100");
         var hash = Hasher.HashBlock(hashable);
 
@@ -173,7 +175,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         };
 
         await Assert.That(() =>
-                svc.AddTestBlockAsync(Guid.NewGuid(), Guid.NewGuid(), instA, "100", "Lang Test", signatures))
+                svc.AddTestBlockAsync(Guid.NewGuid(), Guid.NewGuid(), instA, "100", "Lang Test", signatures)!)
             .Throws<InvalidOperationException>();
     }
 
@@ -189,26 +191,26 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
 
         var testId = Guid.NewGuid();
         {
-            var (prevId, prevHash) = await GetTailAsync(db);
-            var hashableTest = new HashableTestV1(prevHash, instId, testId, "100");
-            var hashTest = Hasher.HashBlock(hashableTest);
+            // var (prevId, prevHash) = await GetTailAsync(db);
+            var validateHashableTest = new HashableTestV1([], instId, testId, "100");
+            var validateHashTest = Hasher.HashBlock(validateHashableTest);
             var sigsTest = new[]
             {
                 new BlockchainService.BlockSignature(signerId,
-                    fixture.PrivateKey.SignData(hashTest, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                    fixture.PrivateKey.SignData(validateHashTest, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             };
             await svc.AddTestBlockAsync(Guid.NewGuid(), testId, instId, "100", "Lang Test", sigsTest);
         }
 
         var missingStudentId = Guid.NewGuid();
-        var (prevIdResult, prevHashResult) = await GetTailAsync(db);
+        var (prevIdResult, _) = await GetTailAsync(db);
         var resultId = Guid.NewGuid();
-        var hashableResult = new HashableTestResultV1(prevHashResult, testId, resultId, "91");
-        var hashResult = Hasher.HashBlock(hashableResult);
+        var validateHashableResult = new HashableTestResultV1([], testId, resultId, "91");
+        var validateHashResult = Hasher.HashBlock(validateHashableResult);
         var sigsResult = new[]
         {
             new BlockchainService.BlockSignature(signerId,
-                fixture.PrivateKey.SignData(hashResult, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+                fixture.PrivateKey.SignData(validateHashResult, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
         };
 
         var block = await svc.AddTestResultBlockAsync(

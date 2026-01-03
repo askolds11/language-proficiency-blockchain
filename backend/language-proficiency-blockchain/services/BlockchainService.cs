@@ -10,7 +10,7 @@ namespace language_proficiency_blockchain.services;
 /// <summary>
 /// Core blockchain operations: block proposal validation and typed block append helpers.
 /// </summary>
-internal sealed class BlockchainService(AppDbContext db, CryptoService cryptoService)
+internal sealed class BlockchainService(AppDbContext db, ICryptoService cryptoService)
 {
     private static readonly SemaphoreSlim BlockAppendLock = new(1, 1);
 
@@ -57,9 +57,11 @@ internal sealed class BlockchainService(AppDbContext db, CryptoService cryptoSer
             }
 
             var (prevId, prevHash) = await GetTailAsync(ct);
+            var validateHashable = new HashableInstitutionV1([], institutionId, institutionName);
+            var validateHash = Hasher.HashBlock(validateHashable);
+            var authorId = await ValidateQuorumAsync(validateHash, signatures, ct);
             var hashable = new HashableInstitutionV1(prevHash, institutionId, institutionName);
             var hash = Hasher.HashBlock(hashable);
-            var authorId = await ValidateQuorumAsync(hash, signatures, ct);
             var block = await PersistBlockAsync(blockId, BlockType.Institution, prevId, prevHash, authorId, hash, ct);
 
             institution.BlockId = block.Id;
@@ -91,9 +93,11 @@ internal sealed class BlockchainService(AppDbContext db, CryptoService cryptoSer
             }
 
             var (prevId, prevHash) = await GetTailAsync(ct);
+            var validateHashable = new HashableTestV1([], institutionId, testId, maxScore);
+            var validateHash = Hasher.HashBlock(validateHashable);
+            var authorId = await ValidateQuorumAsync(validateHash, signatures, ct);
             var hashable = new HashableTestV1(prevHash, institutionId, testId, maxScore);
             var hash = Hasher.HashBlock(hashable);
-            var authorId = await ValidateQuorumAsync(hash, signatures, ct);
             var block = await PersistBlockAsync(blockId, BlockType.Test, prevId, prevHash, authorId, hash, ct);
 
             var test = new TestEntity
@@ -138,9 +142,11 @@ internal sealed class BlockchainService(AppDbContext db, CryptoService cryptoSer
             }
 
             var (prevId, prevHash) = await GetTailAsync(ct);
+            var validateHashable = new HashableTestResultV1([], testId, testResultId, score);
+            var validateHash = Hasher.HashBlock(validateHashable);
+            var authorId = await ValidateQuorumAsync(validateHash, signatures, ct);
             var hashable = new HashableTestResultV1(prevHash, testId, testResultId, score);
             var hash = Hasher.HashBlock(hashable);
-            var authorId = await ValidateQuorumAsync(hash, signatures, ct);
             var block = await PersistBlockAsync(blockId, BlockType.TestResult, prevId, prevHash, authorId, hash, ct);
             var result = new TestResultEntity
             {
