@@ -36,8 +36,17 @@ public interface IAuthenticationService
     /// Generates a JWT token for the provided user.
     /// </summary>
     /// <param name="user">User entity.</param>
+    /// <param name="roles">User roles to include in the token.</param>
     /// <returns>JWT token string and expiration time.</returns>
-    (string token, DateTime expiresAt) GenerateToken(UserEntity user);
+    (string token, DateTime expiresAt) GenerateToken(UserEntity user, IReadOnlyCollection<UserRole> roles);
+
+    /// <summary>
+    /// Gets all roles assigned to a user.
+    /// </summary>
+    /// <param name="userId">User identifier.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Collection of roles assigned to the user.</returns>
+    Task<IReadOnlyCollection<UserRole>> GetUserRolesAsync(Guid userId, CancellationToken ct);
 }
 
 /// <summary>
@@ -103,7 +112,7 @@ internal class AuthenticationService(
         return user;
     }
 
-    public (string token, DateTime expiresAt) GenerateToken(UserEntity user)
+    public (string token, DateTime expiresAt) GenerateToken(UserEntity user, IReadOnlyCollection<UserRole> roles)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.JwtSecret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -116,6 +125,12 @@ internal class AuthenticationService(
             new Claim(ClaimTypes.Email, user.Email)
         };
 
+        // Add each role as a claim
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+        }
+
         var token = new JwtSecurityToken(
             issuer: _options.JwtIssuer,
             audience: _options.JwtAudience,
@@ -126,6 +141,16 @@ internal class AuthenticationService(
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
         return (tokenString, expiresAt);
+    }
+
+    public async Task<IReadOnlyCollection<UserRole>> GetUserRolesAsync(Guid userId, CancellationToken ct)
+    {
+        var roles = await _dbContext.UserRoles
+            .Where(ura => ura.UserId == userId)
+            .Select(ura => ura.Role)
+            .ToListAsync(ct);
+
+        return roles.AsReadOnly();
     }
 }
 

@@ -22,7 +22,11 @@ public class InternalEndpoints : IEndpoint
     {
         var group = builder.MapGroup("internal").WithTags("Internal").RequireAuthorization();
 
-        group.MapPost("institution", AddInstitution);
+        group.MapPost("institution", AddInstitution)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
+
+        group.MapPost("ping", Ping)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.StudentOnly);
         // group.MapPost("nodes/{id:guid}/approve", ApproveNode);
         // group.MapGet("nodes", ListNodes);
         // group.MapGet("chain", GetChain);
@@ -46,6 +50,11 @@ public class InternalEndpoints : IEndpoint
     {
         await internalService.AddInstitution(req.Id, req.Name, req.Address, req.PublicKeyPem);
 
+        return TypedResults.Ok();
+    }
+
+    internal static async Task<Results<Ok, BadRequest>> Ping()
+    {
         return TypedResults.Ok();
     }
 }

@@ -272,6 +272,21 @@
           }
         }
       }
+    },
+    "/api/internal/ping": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -421,6 +436,7 @@
           "token",
           "userId",
           "email",
+          "roles",
           "expiresAt"
         ],
         "type": "object",
@@ -437,6 +453,13 @@
           "email": {
             "type": "string",
             "description": "User email address."
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRole"
+            },
+            "description": "User roles."
           },
           "expiresAt": {
             "type": "string",
@@ -826,6 +849,10 @@
           }
         },
         "description": "Represents a single language proficiency test result that is stored on-chain."
+      },
+      "UserRole": {
+        "type": "integer",
+        "description": "Enumeration of user roles in the system."
       }
     }
   },

@@ -33,13 +33,15 @@ public class AuthenticationEndpoints : IEndpoint
         try
         {
             var user = await authService.RegisterAsync(req.Email, req.Password, ct);
-            var (token, expiresAt) = authService.GenerateToken(user);
+            var roles = await authService.GetUserRolesAsync(user.Id, ct);
+            var (token, expiresAt) = authService.GenerateToken(user, roles);
 
             var response = new AuthenticationResponse
             {
                 Token = token,
                 UserId = user.Id,
                 Email = user.Email,
+                Roles = roles,
                 ExpiresAt = expiresAt
             };
 
@@ -63,13 +65,15 @@ public class AuthenticationEndpoints : IEndpoint
         try
         {
             var user = await authService.AuthenticateAsync(req.Email, req.Password, ct);
-            var (token, expiresAt) = authService.GenerateToken(user);
+            var roles = await authService.GetUserRolesAsync(user.Id, ct);
+            var (token, expiresAt) = authService.GenerateToken(user, roles);
 
             var response = new AuthenticationResponse
             {
                 Token = token,
                 UserId = user.Id,
                 Email = user.Email,
+                Roles = roles,
                 ExpiresAt = expiresAt
             };
 

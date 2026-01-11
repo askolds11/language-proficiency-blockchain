@@ -1,3 +1,5 @@
+using language_proficiency_blockchain.Database.Models;
+
 namespace language_proficiency_blockchain.responses.Authentication;
 
 /// <summary>
@@ -19,6 +21,11 @@ public class AuthenticationResponse
     /// User email address.
     /// </summary>
     public required string Email { get; init; }
+
+    /// <summary>
+    /// User roles.
+    /// </summary>
+    public required IReadOnlyCollection<UserRole> Roles { get; init; }
 
     /// <summary>
     /// Token expiration time in UTC.

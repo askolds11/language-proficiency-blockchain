@@ -24,10 +24,14 @@ public class BlockchainEndpoints : IEndpoint
     {
         var group = builder.MapGroup("blockchain").WithTags("Blockchain").RequireAuthorization();
 
-        group.MapPost("blocks/institution", AddInstitutionBlock);
-        group.MapPost("blocks/test", AddTestBlock);
-        group.MapPost("blocks/testresult", AddTestResultBlock);
-        group.MapPost("blocks/propose", ProposeBlock);
+        group.MapPost("blocks/institution", AddInstitutionBlock)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
+        group.MapPost("blocks/test", AddTestBlock)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
+        group.MapPost("blocks/testresult", AddTestResultBlock)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.VerificatorOrOperator);
+        group.MapPost("blocks/propose", ProposeBlock)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.VerificatorOrOperator);
     }
 
     internal static async Task<Results<Ok<BlockEntity>, BadRequest<string>>> AddInstitutionBlock(

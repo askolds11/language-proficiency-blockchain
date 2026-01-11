@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using language_proficiency_blockchain;
+using language_proficiency_blockchain.Authorization;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.Options;
@@ -86,7 +87,7 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationPolicies();
 
 builder.Services.Configure<JsonOptions>(options =>
 {
