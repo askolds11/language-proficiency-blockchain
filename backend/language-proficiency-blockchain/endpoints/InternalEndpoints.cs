@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using language_proficiency_blockchain.requests.Internal;
 using language_proficiency_blockchain.services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,7 @@ namespace language_proficiency_blockchain.endpoints;
 /// HTTP endpoints for private operations
 /// </summary>
 [PublicAPI]
+[Authorize]
 public class InternalEndpoints : IEndpoint
 {
     /// <summary>
@@ -18,7 +20,7 @@ public class InternalEndpoints : IEndpoint
     /// <param name="builder">Endpoint route builder to map routes on.</param>
     public static void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("internal").WithTags("Internal");
+        var group = builder.MapGroup("internal").WithTags("Internal").RequireAuthorization();
 
         group.MapPost("institution", AddInstitution);
         // group.MapPost("nodes/{id:guid}/approve", ApproveNode);

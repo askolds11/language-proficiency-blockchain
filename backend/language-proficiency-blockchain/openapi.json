@@ -5,6 +5,84 @@
     "version": "1.0.0"
   },
   "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthenticationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/blockchain/blocks/institution": {
       "post": {
         "tags": [
@@ -338,6 +416,36 @@
           }
         }
       },
+      "AuthenticationResponse": {
+        "required": [
+          "token",
+          "userId",
+          "email",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "JWT token for authenticated requests."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier.",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email address."
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Token expiration time in UTC.",
+            "format": "date-time"
+          }
+        },
+        "description": "Response model for successful authentication."
+      },
       "BlockBase": {
         "type": "object",
         "properties": {
@@ -494,6 +602,24 @@
         },
         "description": "Represents an institution that participates in the blockchain."
       },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the user."
+          },
+          "password": {
+            "type": "string",
+            "description": "Password for the user account."
+          }
+        },
+        "description": "Request model for user login."
+      },
       "ProposeBlockRequest": {
         "required": [
           "block",
@@ -527,6 +653,25 @@
             "type": "string"
           }
         }
+      },
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the user."
+          },
+          "password": {
+            "minLength": 6,
+            "type": "string",
+            "description": "Password for the user account."
+          }
+        },
+        "description": "Request model for user registration."
       },
       "SignedByInstitution": {
         "required": [
@@ -657,7 +802,7 @@
           "score": {
             "maxLength": 128,
             "type": "string",
-            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\nOptional; may be null if the score is not disclosed."
+            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\r\nOptional; may be null if the score is not disclosed."
           },
           "timestamp": {
             "type": "string",
@@ -685,6 +830,9 @@
     }
   },
   "tags": [
+    {
+      "name": "Authentication"
+    },
     {
       "name": "Blockchain"
     },

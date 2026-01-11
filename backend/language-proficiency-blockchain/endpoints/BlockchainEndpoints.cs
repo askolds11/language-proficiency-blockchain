@@ -3,6 +3,7 @@ using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.requests.Blockchain;
 using language_proficiency_blockchain.responses.Blockchain;
 using language_proficiency_blockchain.services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,7 @@ namespace language_proficiency_blockchain.endpoints;
 /// HTTP endpoints for blockchain-related operations such as adding blocks.
 /// </summary>
 [PublicAPI]
+[Authorize]
 public class BlockchainEndpoints : IEndpoint
 {
     /// <summary>
@@ -20,7 +22,7 @@ public class BlockchainEndpoints : IEndpoint
     /// <param name="builder">Endpoint route builder to map routes on.</param>
     public static void MapEndpoint(IEndpointRouteBuilder builder)
     {
-        var group = builder.MapGroup("blockchain").WithTags("Blockchain");
+        var group = builder.MapGroup("blockchain").WithTags("Blockchain").RequireAuthorization();
 
         group.MapPost("blocks/institution", AddInstitutionBlock);
         group.MapPost("blocks/test", AddTestBlock);

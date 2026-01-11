@@ -1,11 +1,16 @@
+using System.Text;
 using System.Text.Json;
 using language_proficiency_blockchain;
 using language_proficiency_blockchain.Database;
+using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.Options;
 using language_proficiency_blockchain.services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +22,11 @@ builder.Services.AddOpenApi();
 builder.Services
     .AddOptions<RsaOptions>()
     .Bind(builder.Configuration.GetSection(RsaOptions.Options))
+    .ValidateDataAnnotations();
+
+builder.Services
+    .AddOptions<AuthenticationOptions>()
+    .Bind(builder.Configuration.GetSection(AuthenticationOptions.Authentication))
     .ValidateDataAnnotations();
 
 builder.Services.AddSingleton<IOptionsMonitor<RsaKeyHolder>, RsaKeyMonitor>();
@@ -38,6 +48,46 @@ if (connectionStrings == null)
 
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionStrings.AppDb));
 
+// Add authentication services
+builder.Services.AddScoped<IPasswordHasher<UserEntity>, PasswordHasher<UserEntity>>();
+builder.Services.AddScoped<IAuthenticationOptions>(sp =>
+    new AuthenticationOptionsWrapper(sp.GetRequiredService<IOptions<AuthenticationOptions>>()));
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+// Configure JWT Authentication
+var authOptions = builder.Configuration
+    .GetSection(AuthenticationOptions.Authentication)
+    .Get<AuthenticationOptions>();
+
+if (authOptions == null)
+{
+    throw new Exception("Authentication options not found");
+}
+
+var key = Encoding.UTF8.GetBytes(authOptions.JwtSecret);
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = authOptions.JwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = authOptions.JwtAudience,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
 builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
@@ -49,6 +99,13 @@ builder.Services.Configure<JsonOptions>(options =>
 
 var app = builder.Build();
 
+// Apply database migrations at startup
+//using (var scope = app.Services.CreateScope())
+//{
+//    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+//    dbContext.Database.Migrate();
+//}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -57,6 +114,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Add authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapGroup("api").MapEndpoints();
 
