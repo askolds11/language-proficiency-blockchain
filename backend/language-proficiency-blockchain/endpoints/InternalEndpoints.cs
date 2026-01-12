@@ -26,7 +26,7 @@ public class InternalEndpoints : IEndpoint
             .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
 
         group.MapPost("ping", Ping)
-            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.StudentOnly);
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.Everyone);
         // group.MapPost("nodes/{id:guid}/approve", ApproveNode);
         // group.MapGet("nodes", ListNodes);
         // group.MapGet("chain", GetChain);

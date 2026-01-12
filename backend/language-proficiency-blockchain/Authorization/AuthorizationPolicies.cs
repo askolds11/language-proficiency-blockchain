@@ -29,6 +29,11 @@ internal static class AuthorizationPolicies
     public const string VerificatorOrOperator = nameof(VerificatorOrOperator);
 
     /// <summary>
+    /// Policy name for Everyone (no restrictions).
+    /// </summary>
+    public const string Everyone = nameof(Everyone);
+
+    /// <summary>
     /// Registers all authorization policies.
     /// </summary>
     /// <param name="services">Service collection.</param>
@@ -44,6 +49,9 @@ internal static class AuthorizationPolicies
 
             options.AddPolicy(OperatorOnly, policy =>
                 policy.RequireRole(UserRole.Operator.ToString()));
+
+            options.AddPolicy(Everyone, policy => 
+                policy.RequireAuthenticatedUser());
 
             options.AddPolicy(VerificatorOrOperator, policy =>
                 policy.RequireRole(
