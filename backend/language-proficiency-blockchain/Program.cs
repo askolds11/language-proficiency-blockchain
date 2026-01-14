@@ -39,6 +39,17 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<INodeHttpClient, NodeHttpClient>();
 builder.Services.AddScoped<INodeRepository, NodeRepository>();
 
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 var connectionStrings = builder.Configuration
     .GetSection(ConnectionStringsOptions.ConnectionStrings)
     .Get<ConnectionStringsOptions>();
@@ -115,6 +126,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Add CORS middleware before authentication
+app.UseCors("AllowAll");
 
 // Add authentication and authorization middleware
 app.UseAuthentication();
