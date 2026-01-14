@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace language_proficiency_blockchain.Database.Models;
@@ -35,8 +36,8 @@ internal class TestResultEntity
     /// The score or grade awarded for the test. Kept as a string to support formats such as "85", "C1", "7.5", etc.
     /// Optional; may be null if the score is not disclosed.
     /// </summary>
-    [MaxLength(128)]
-    public required string Score { get; init; }
+    [Column(TypeName = "jsonb")]
+    public required JsonDocument Score { get; init; }
 
     /// <summary>
     /// Timestamp of when the result was recorded.

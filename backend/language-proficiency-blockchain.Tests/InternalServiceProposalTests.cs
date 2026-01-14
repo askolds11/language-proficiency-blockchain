@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.Json;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels.Interfaces;
@@ -437,7 +438,7 @@ internal class InternalServiceProposalTests(RsaKeyFixture rsaKeyFixture) : BaseI
             testResultId,
             testId,
             studentId,
-            "85",
+            JsonSerializer.SerializeToDocument(new {listening = 70, speaking = 80}),
             timestamp,
             CancellationToken.None);
 
@@ -449,7 +450,7 @@ internal class InternalServiceProposalTests(RsaKeyFixture rsaKeyFixture) : BaseI
         var testResult = await db.TestResults.FindAsync(testResultId);
         await Assert.That(testResult).IsNotNull();
         await Assert.That(testResult!.BlockId).IsEqualTo(result.Id);
-        await Assert.That(testResult.Score).IsEqualTo("85");
+        await Assert.That(testResult.Score).IsEqualTo(JsonSerializer.SerializeToDocument(new {listening = 70, speaking = 80}));
         await Assert.That(testResult.StudentId).IsEqualTo(studentId);
 
         // Verify broadcast

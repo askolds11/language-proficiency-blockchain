@@ -417,7 +417,7 @@
             "format": "uuid"
           },
           "score": {
-            "type": "string"
+            "$ref": "#/components/schemas/JsonDocument"
           },
           "timestamp": {
             "type": "string",
@@ -625,6 +625,7 @@
         },
         "description": "Represents an institution that participates in the blockchain."
       },
+      "JsonDocument": { },
       "LoginRequest": {
         "required": [
           "email",
@@ -823,9 +824,8 @@
             "format": "uuid"
           },
           "score": {
-            "maxLength": 128,
-            "type": "string",
-            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\r\nOptional; may be null if the score is not disclosed."
+            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\r\nOptional; may be null if the score is not disclosed.",
+            "$ref": "#/components/schemas/JsonDocument"
           },
           "timestamp": {
             "type": "string",

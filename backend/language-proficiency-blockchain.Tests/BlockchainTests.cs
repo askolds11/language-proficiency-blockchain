@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.HashModels;
 using language_proficiency_blockchain.HashModels.v1;
@@ -135,7 +136,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var (prevIdResult, _) = await GetTailAsync(db);
         var resultId = Guid.NewGuid();
         var studentId = Guid.NewGuid();
-        var validateHashableResult = new HashableTestResultV1([], testId, resultId, "85");
+        var validateHashableResult = new HashableTestResultV1([], testId, resultId, JsonSerializer.SerializeToDocument(new {listening = 70,reading = 89,writing = 77,speaking = 47}));
         var validateHashResult = Hasher.HashBlock(validateHashableResult);
         var sigsResult = new[]
         {
@@ -143,7 +144,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
                 fixture.PrivateKey.SignData(validateHashResult, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
         };
 
-        var block = await svc.AddTestResultBlockAsync(Guid.NewGuid(), resultId, testId, studentId, "85",
+        var block = await svc.AddTestResultBlockAsync(Guid.NewGuid(), resultId, testId, studentId, JsonSerializer.SerializeToDocument(new {listening = 70,reading = 89,writing = 77,speaking = 47}),
             DateTimeOffset.UtcNow, sigsResult);
 
         var result = await db.TestResults.FindAsync(resultId);
@@ -205,7 +206,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var missingStudentId = Guid.NewGuid();
         var (prevIdResult, _) = await GetTailAsync(db);
         var resultId = Guid.NewGuid();
-        var validateHashableResult = new HashableTestResultV1([], testId, resultId, "91");
+        var validateHashableResult = new HashableTestResultV1([], testId, resultId, JsonSerializer.SerializeToDocument(new {listening = 70}));
         var validateHashResult = Hasher.HashBlock(validateHashableResult);
         var sigsResult = new[]
         {
@@ -218,7 +219,7 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
             resultId,
             testId,
             missingStudentId,
-            "91",
+            JsonSerializer.SerializeToDocument(new {listening = 70}),
             DateTimeOffset.UtcNow,
             sigsResult);
 

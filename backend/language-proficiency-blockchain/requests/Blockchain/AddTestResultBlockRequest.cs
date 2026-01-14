@@ -1,3 +1,4 @@
+using System.Text.Json;
 using JetBrains.Annotations;
 
 namespace language_proficiency_blockchain.requests.Blockchain;
@@ -8,7 +9,7 @@ public sealed record AddTestResultBlockRequest(
     Guid TestResultId,
     Guid TestId,
     Guid StudentId,
-    string Score,
+    JsonDocument Score,
     DateTimeOffset Timestamp,
     IReadOnlyCollection<SignedByInstitution> Signatures
 );
