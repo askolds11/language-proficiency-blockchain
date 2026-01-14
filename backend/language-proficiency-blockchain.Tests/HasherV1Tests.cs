@@ -1,3 +1,4 @@
+using System.Text.Json;
 using language_proficiency_blockchain.HashModels.v1;
 using TUnit.Assertions.Enums;
 
@@ -11,14 +12,14 @@ public class HasherV1Tests
     private static readonly HashableTestV1 HashableTestV1 =
         new(Convert.FromHexString("AA"), DummyGuid, DummyGuid, "MaxScore");
     private static readonly HashableTestResultV1 HashableTestResultV1 =
-        new(Convert.FromHexString("AA"), DummyGuid, DummyGuid, "Score");
+        new(Convert.FromHexString("AA"), DummyGuid, DummyGuid, JsonSerializer.SerializeToDocument(new {test = 1}));
 
     private static readonly byte[] HashableInstitutionV1Hash =
         Convert.FromHexString("5BFD2986CB0844A321100EF42C836B4CF233885299F1E6672EB68DD7B54025CD");
     private static readonly byte[] HashableTestV1Hash =
         Convert.FromHexString("9B0AE8173D8501AACE20BD74093E56C79675731B781E4E73122049B0D204CC5C");
     private static readonly byte[] HashableTestResultV1Hash =
-        Convert.FromHexString("B1520630FC205BD8E3D91E9EF4042EC12DA94A37F56A3CB332AD23A0292DB671");
+        Convert.FromHexString("4B5175BE7BD48669E2E2B00F574285D39E0EBB97ABE42F8DF36437750BF10CCD");
 
     [Test]
     public async Task TestHashInstitution()

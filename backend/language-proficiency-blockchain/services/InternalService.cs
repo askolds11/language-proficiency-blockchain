@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text.Json;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels;
@@ -122,7 +123,7 @@ internal class InternalService(
         Guid testResultId,
         Guid testId,
         Guid studentId,
-        string score,
+        JsonDocument score,
         DateTimeOffset timestamp,
         CancellationToken ct = default)
     {

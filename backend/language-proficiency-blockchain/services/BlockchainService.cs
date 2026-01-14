@@ -1,3 +1,4 @@
+using System.Text.Json;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels;
@@ -124,7 +125,7 @@ internal sealed class BlockchainService(AppDbContext db, ICryptoService cryptoSe
         Guid testResultId,
         Guid testId,
         Guid studentId,
-        string score,
+        JsonDocument score,
         DateTimeOffset timestamp,
         IReadOnlyCollection<BlockSignature> signatures,
         CancellationToken ct = default)
