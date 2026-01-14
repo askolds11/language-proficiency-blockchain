@@ -9,7 +9,7 @@ const user = ref({
 
 async function actionClicked() {
 
-fetch("https://localhost:5001/api/auth/login", {
+fetch("http://localhost:5001/api/auth/login", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
@@ -21,7 +21,7 @@ fetch("https://localhost:5001/api/auth/login", {
 });
 
 
-  fetch("http://localhost:5001/ping")
+  fetch("http://localhost:5001/api/internal/ping")
   .then(r => r.text())
   .then(console.log)
   .catch(console.error);

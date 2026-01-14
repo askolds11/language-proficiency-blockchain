@@ -25,8 +25,11 @@ public class InternalEndpoints : IEndpoint
         group.MapPost("institution", AddInstitution)
             .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
 
-        group.MapPost("ping", Ping)
-            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.Everyone);
+        group.MapGet("ping", Ping)
+            .AllowAnonymous();
+
+        group.MapPost("assign-role", AssignRole)
+            .AllowAnonymous();
         // group.MapPost("nodes/{id:guid}/approve", ApproveNode);
         // group.MapGet("nodes", ListNodes);
         // group.MapGet("chain", GetChain);
@@ -56,5 +59,29 @@ public class InternalEndpoints : IEndpoint
     internal static async Task<Results<Ok, BadRequest>> Ping()
     {
         return TypedResults.Ok();
+    }
+
+    /// <summary>
+    /// Assigns a role to a user.
+    /// </summary>
+    /// <param name="internalService">Internal service.</param>
+    /// <param name="req">Assign role payload.</param>
+    /// <returns>
+    /// 200 OK if assigned successfully.
+    /// 400 BadRequest if user not found.
+    /// </returns>
+    internal static async Task<Results<Ok, BadRequest<string>>> AssignRole(
+        [FromServices] InternalService internalService,
+        [FromBody] AssignRoleRequest req)
+    {
+        try
+        {
+            await internalService.AssignRoleAsync(req.UserId, req.Role);
+            return TypedResults.Ok();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return TypedResults.BadRequest(ex.Message);
+        }
     }
 }
