@@ -1,0 +1,10 @@
+apiVersion: v2
+type: application
+description: A Helm chart for LX Demo
+name: lx-demo
+appVersion: 0.0.1
+version: 0.0.1
+home: https://git.zzdats.lv/lx/demo/
+maintainers:
+  - name: LX
+    email: zzdats@zzdats.lv

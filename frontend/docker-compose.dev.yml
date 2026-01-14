@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  app-name-nospaces-lowercase:
+    image: node:20.12.0-alpine
+    container_name: app-name-nospaces-lowercase
+    working_dir: /var/www/html/app/
+    entrypoint: sh
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - 44341:44341
+    volumes: [ ./:/var/www/html/app ]
+    tty: true

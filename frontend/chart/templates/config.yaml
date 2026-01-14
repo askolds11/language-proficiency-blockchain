@@ -1,0 +1,17 @@
+{{- if .Values.config.environments }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "lx-demo.name" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "lx-demo.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    version: {{ .Values.image.tag }}
+data:
+{{- with .Values.config.environments }}
+{{ toYaml . | indent 2 }}
+{{- end }}
+{{- end }}

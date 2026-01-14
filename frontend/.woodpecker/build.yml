@@ -1,0 +1,231 @@
+when:
+  - branch:
+      - main
+      - develop
+      - 'release/*'
+    event:
+      - push
+  - event:
+      - pull_request
+      - tag
+
+steps:
+  - name: dependencies
+    image: node:20.12.0-alpine
+    pull: true
+    commands:
+      - corepack enable pnpm
+      - pnpm i --frozen-lockfile
+    when:
+      branch:
+        - main
+        - develop
+        - "release/*"
+      event:
+        - pull_request
+        - push
+
+  - name: review-javascript
+    image: woodpeckerci/plugin-reviewdog-eslint:alpine
+    pull: true
+    settings:
+      token:
+        from_secret: reviewdog_token
+      patterns:
+        - src/
+    when:
+      branch:
+        - develop
+      event:
+        - pull_request
+
+  - name: lint
+    image: node:20.12.0-alpine
+    commands:
+      - yarn run lint -f json -o eslint-report.json
+    failure: ignore
+    when:
+      branch:
+        - develop
+      event:
+        - push
+
+  - name: test
+    image: node:20.12.0-alpine
+    commands:
+      - corepack enable pnpm
+      - pnpm test
+    when:
+      branch:
+        - develop
+      event:
+        - pull_request
+        - push
+
+  - name: code-check
+    image: sonarsource/sonar-scanner-cli:5.0.1
+    pull: true
+    secrets: [ sonar_token ]
+    commands:
+    - sonar-scanner
+      -D "sonar.sources=./src/"
+      -D "sonar.eslint.reportPaths=./eslint-report.json"
+      -D "sonar.projectKey=${CI_REPO_OWNER}-${CI_REPO_NAME}"
+      -D "sonar.projectName=${CI_REPO_OWNER}/${CI_REPO_NAME}"
+      -D "sonar.sourceEncoding=UTF-8"
+      -D "sonar.projectVersion=${CI_PIPELINE_NUMBER}"
+      -D "sonar.login=$${SONAR_TOKEN}"
+      -D "sonar.host.url=https://sq.zzdats.lv/"
+    when:
+      branch:
+        - develop
+      event:
+        - push
+
+  - name: build
+    image: node:20.12.0-alpine
+    environment:
+      ENVIRONMENT: "staging"
+    commands:
+      - corepack enable pnpm
+      - pnpm build
+    when:
+      branch:
+        - main
+        - develop
+        - "release/*"
+      event:
+        - pull_request
+        - push    
+  
+  - name: dependency-security-check
+    image: aquasec/trivy:latest
+    commands:
+      - trivy fs --exit-code 0 --skip-dirs node_modules --severity UNKNOWN,LOW,MEDIUM .
+      - trivy fs --exit-code 1 --skip-dirs node_modules --severity HIGH,CRITICAL .
+    when:
+      branch:
+        - develop
+      event:
+        - pull_request
+        - push
+
+  - name: docker-dryrun
+    image: woodpeckerci/plugin-docker-buildx:latest
+    pull: true
+    settings:
+      logins:
+        - registry: https://git.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password      
+      dry_run: true
+      output: type=docker,dest=${CI_REPO_OWNER}-${CI_REPO_NAME}.tar
+      mtu: 1280
+    when:
+      branch:
+        - develop
+      event:
+        - pull_request
+        - push
+
+  - name: docker-image-security-check
+    pull: true
+    image: aquasec/trivy:latest
+    commands:
+      - trivy image --exit-code 0 --severity UNKNOWN,LOW,MEDIUM --input ${CI_REPO_OWNER}-${CI_REPO_NAME}.tar
+      - trivy image --exit-code 1 --severity HIGH,CRITICAL --input ${CI_REPO_OWNER}-${CI_REPO_NAME}.tar
+    when:
+      branch:
+        - develop
+      event:
+        - pull_request
+        - push
+
+  - name: docker-develop
+    image: woodpeckerci/plugin-docker-buildx:latest
+    pull: true
+    settings:
+      repo: docker.zzdats.lv/${CI_REPO_OWNER}/${CI_REPO_NAME},git.zzdats.lv/${CI_REPO_OWNER}/${CI_REPO_NAME}
+      registry: docker.zzdats.lv
+      mtu: 1280
+      tag: develop
+      logins:
+        - registry: docker.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+        - registry: git.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+    when:
+      branch: 
+        - develop
+      event:
+        - push
+
+  - name: docker-latest
+    image: woodpeckerci/plugin-docker-buildx:latest
+    pull: true
+    settings:
+      repo: docker.zzdats.lv/${CI_REPO_OWNER}/${CI_REPO_NAME},git.zzdats.lv/${CI_REPO_OWNER}/${CI_REPO_NAME}
+      registry: docker.zzdats.lv
+      mtu: 1280
+      tag: latest
+      logins:
+        - registry: docker.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+        - registry: git.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+    when:
+      branch: 
+        - main
+      event:
+        - push
+
+  - name: build-release
+    image: node:20.12.0-alpine
+    environment:
+      ENVIRONMENT: "production"
+    commands:
+      - corepack enable pnpm
+      - pnpm install --frozen-lockfile
+      - pnpm version --no-git-tag-version --new-version ${CI_COMMIT_TAG##v}
+      - pnpm build
+    when:
+      event:
+        - tag
+
+  - name: docker-release
+    image: woodpeckerci/plugin-docker-buildx:latest
+    pull: true
+    settings:
+      repo: docker.zzdats.lv/${CI_REPO_OWNER}/${CI_REPO_NAME},git.zzdats.lv/${CI_REPO_OWNER}/${CI_REPO_NAME}
+      registry: docker.zzdats.lv
+      mtu: 1280
+      tag: latest
+      logins:
+        - registry: docker.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+        - registry: git.zzdats.lv
+          username:
+            from_secret: docker_username
+          password:
+            from_secret: docker_password
+      auto_tag: true
+    when:
+      event:
+        - tag

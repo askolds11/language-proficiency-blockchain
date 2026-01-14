@@ -1,0 +1,95 @@
+
+when:
+  - branch:
+      - main
+      - develop
+    event:
+      - push
+  - event:
+      - pull_request
+
+depends_on: [ build ]
+
+runs_on: [ success ]
+
+steps:
+  lint:
+    image: ventx/helm3-ci:2.5.0
+    pull: true
+    commands:
+      - ct lint --charts chart
+    when:
+      event:
+        - pull_request
+
+  package:
+    image: ventx/helm3-ci
+    commands:
+      - "sed -i -e 's/tag:.*/tag: ${CI_COMMIT_BRANCH}/g' chart/values.yaml"
+      - "sed -i -e 's/version:.*/version: 1.0.0-${CI_COMMIT_BRANCH}-${CI_PIPELINE_NUMBER}/g' chart/Chart.yaml"
+      - helm package chart/
+        --app-version "1.0.0-${CI_COMMIT_BRANCH}-${CI_PIPELINE_NUMBER}"
+        --version "1.0.0-${CI_COMMIT_BRANCH}-${CI_PIPELINE_NUMBER}"
+        -d build
+    when:
+      branch:
+        - develop
+      event:
+        - push
+
+  publish:
+    image: curlimages/curl
+    pull: true
+    secrets:
+      - helm_username
+      - helm_password
+    commands:
+      - curl --silent --show-error --fail --upload-file build/${CI_REPO_OWNER}-${CI_REPO_NAME}-1.0.0-${CI_COMMIT_BRANCH}-${CI_PIPELINE_NUMBER}.tgz -u $${HELM_USERNAME}:$${HELM_PASSWORD} https://nexus.zzdats.lv/repository/helm-raw/lx/demo/
+    when:
+      branch:
+        - develop
+      event:
+        - push
+
+  helm-values:
+    image: woodpeckerci/plugin-git
+    secrets:
+      - ssh_key
+    commands:
+      - mkdir -p $HOME/.ssh
+      - echo "$${SSH_KEY}" > $HOME/.ssh/id_rsa && chmod 600 $HOME/.ssh/id_rsa
+      - GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@git.zzdats.lv:lx/helm-values.git
+      - ls -la helm-values/*
+    when:
+      branch:
+        - main
+        - develop
+      event:
+        - push
+
+  patch-helm-values-develop:
+    image: ventx/helm3-ci:2.5.0
+    pull: true
+    commands:
+      - "sed -i -e 's/tag:.*/tag: ${CI_COMMIT_BRANCH}/g' helm-values/dev/${CI_REPO_OWNER}-${CI_REPO_NAME}.yaml"
+      - "sed -i -e 's/namespace:.*/namespace: ${CI_REPO_OWNER}-dev/g' helm-values/dev/${CI_REPO_OWNER}-${CI_REPO_NAME}.yaml"
+      - cat helm-values/dev/${CI_REPO_OWNER}-${CI_REPO_NAME}.yaml
+    when:
+      branch:
+        - develop
+      event:
+        - push
+
+  deploy-k8s-develop:
+    image: ventx/helm3-ci
+    secrets:
+      - kube_config_dev
+    commands:
+      - mkdir /root/.kube
+      - echo $KUBE_CONFIG_DEV | base64 -d > /root/.kube/config && chmod 600 /root/.kube/config
+      - helm upgrade --install --wait ${CI_REPO_OWNER}-${CI_REPO_NAME} -n ${CI_REPO_OWNER}-dev chart/ -f helm-values/dev/${CI_REPO_OWNER}-${CI_REPO_NAME}.yaml --timeout=180s --cleanup-on-fail
+    when:
+      branch:
+        - develop
+      event:
+        - push

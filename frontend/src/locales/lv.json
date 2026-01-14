@@ -1,0 +1,387 @@
+{
+  "title": {
+    "default": "<APP-NAME-DESCRIPTION>",
+    "prefix": "",
+    "fullName": "Demo",
+    "fullNameFormatted": "LX komponenšu un moduļu demo portāls",
+    "subheader": "LX komponenšu un moduļu demo portāls",
+    "shortName": "Demo"
+  },
+  "roles": {
+    "GAMER": "Ludomāns parastais",
+    "GAMER_ADMIN": "Ludomāns-eksperts",
+    "description": {
+      "GAMER": "Lietotājs bez īpašām tiesībām",
+      "GAMER_ADMIN": "Lietotājs ar maksimālām tiesībām"
+    }
+  },
+  "shell": {
+    "userProfile": "Skatīt profilu",
+    "changeOrganization": "Mainīt iestādi",
+    "logOut": "Iziet",
+    "notifications": {
+      "logOut": "Jūsu sesija ir veiksmīgi pabeigta",
+      "agreement": "Jums ir jāpiekrīt lietošanas noteikumiem",
+      "unknownState": "Notika kļūda lietotāja statusa apstrādē",
+      "err401": "Ieejiet sistēmā, lai piekļūtu funkcionalitātei",
+      "sessionContinued": "Sesija veiksmīgi pagarināta",
+      "sessionContinuedFailed": "Sesijas pagarināšana nav izdevusies",
+      "sessionEndingSoon": "Jūsu sesija drīz beigsies"
+    },
+    "sessionExpiring": {
+      "label": "Tuvojas sesijas beigas",
+      "description": "Līdz sesijas beigām ir palikusi {count} sekunde | Līdz sesijas beigām ir palikušas {count} sekundes",
+      "descriptionMinutes": "Līdz sesijas beigām ir palikusi {count} minūte | Līdz sesijas beigām ir palikušas {count} minūtes",
+      "descriptionMinutesSmall": "un {count} sekunde | un {count} sekundes",
+      "primaryLabel": "Turpināt darbu",
+      "secondaryLabel": "Beigt darbu"
+    }
+  },
+  "greeting": {
+    "default": "Sveicināti",
+    "morning": "Labrīt",
+    "day": "Labdien",
+    "evening": "Labvakar",
+    "night": "Arlabunakti"
+  },
+  "pages": {
+    "signin": {
+      "title": "Izvēlieties autorizācijas veidu"
+    },
+    "home": {
+      "title": "Language proficiency test result system",
+      "buttons": {
+        "loginAuthorized": "Sākt"
+      }
+    },
+    "secureDemo": {
+      "title": "Drošā lapa"
+    },
+    "roleSelection": {
+      "title": "Lomas izvēle",
+      "description": "Izvēlieties lomu",
+      "errors": {
+        "noRoles": "Nav piešķirtas tiesības uz nevienu lomu",
+        "loadingRoles": "Notika kļūda veicot lomu saraksta ielādi",
+        "selectingRole": "Notika kļūda, izvēloties lomu"
+      }
+    },
+    "forms": {
+      "title": "Formas",
+      "description": "Formas uzbūves vadlīnijas un pielietojumu piemēri",
+      "anatomy": {
+        "title": "Anatomija"
+      },
+      "layout": {
+        "title": "Lauku izkārtojums"
+      },
+      "index": {
+        "title": "Sadaļas"
+      },
+      "builder": {
+        "title": "Formu būvētājs"
+      }
+    },
+    "showroom": {
+      "title": "Projektu izstāde",
+      "description": "Eksistējošie projekti, kas izmanto LX komponentes"
+    },
+    "esign": {
+      "title": "E-paraksts",
+      "description": "Demonstrācija dokumentu elektroniskais parakstītājam, kas izmanto Simple Sign"
+    },
+    "sessionEnded": {
+      "title": "Jūsu sesija ir beigusies",
+      "description": "Sesijas atvēlētais laiks ir beidzies. Lai turpinātu darbu, ienāciet sistēmā atkārtoti"
+    },
+    "userProfile": {
+      "title": "Lietotāja profils",
+      "personalIdLabel": "Personas kods",
+      "organizationLabel": "Iestāde",
+      "roleLabel": "Loma",
+      "scope": "Tiesības",
+      "phoneLabel": "Kontakttālrunis",
+      "emailLabel": "E-pasta adrese"
+    },
+    "sandbox": {
+      "title": "Komponenšu smilškaste",
+      "titleShort": "Komponentes",
+      "description": "Šī lapa ir paredzēta LX komponenšu un stilu demonstrācijai"
+    },
+    "fileUploader": {
+      "title": "LxFileUploader",
+      "description": "Šī lapa ir paredzēta LxFileUploader stilu demonstrācijai"
+    },
+    "markdownTextArea": {
+      "title": "LxMarkdownTextArea",
+      "description": "Šī lapa ir paredzēta LxMarkdownTextArea stilu demonstrācijai"
+    },
+    "masterDetail": {
+      "title": "LxMasterDetail",
+      "description": "Šī lapa ir paredzēta LxMasterDetail komponenšu un stilu demonstrācijai"
+    },
+    "dropDown": {
+      "title": "LxDropDown",
+      "description": "Šī lapa ir paredzēta LxDropDown komponenšu un stilu demonstrācijai"
+    },
+    "dropDownMenu": {
+      "title": "LxDropDownMenu",
+      "description": "Šī lapa ir paredzēta LxDropDownMenu komponenšu un stilu demonstrācijai"
+    },
+    "steps": {
+      "title": "LxSteps",
+      "description": "Šī lapa ir paredzēta LxSteps komponenšu un stilu demonstrācijai"
+    },
+    "numberSlider": {
+      "title": "LxNumberSlider",
+      "description": "Šī lapa ir paredzēta LxNumberSlider komponenšu un stilu demonstrācijai"
+    },
+    "list": {
+      "title": "LxList",
+      "description": "Šī lapa ir paredzēta LxList komponenšu un stilu demonstrācijai"
+    },
+    "flag": {
+      "title": "LxFlag",
+      "description": "Šī lapa ir paredzēta LxFlag komponenšu un stilu demonstrācijai"
+    },
+    "icon": {
+      "title": "LxIcon",
+      "description": "Šī lapa ir paredzēta LxIcon komponenšu un stilu demonstrācijai"
+    },
+    "contentSwitcher": {
+      "title": "LxContentSwitcher",
+      "description": "Šī lapa ir paredzēta LxContentSwitcher komponenšu un stilu demonstrācijai"
+    },
+    "button": {
+      "title": "LxButton",
+      "description": "Šī lapa ir paredzēta LxButtons stilu demonstrācijai",
+      "toIcons": "Saite ar visām pieejamajām ikonām"
+    },
+    "infoWrapper": {
+      "title": "LxInfoWrapper",
+      "description": "Šī lapa ir paredzēta LxInfoWrapper stilu demonstrācijai"
+    },
+    "textInput": {
+      "title": "LxTextInput",
+      "description": "Šī lapa ir paredzēta LxTextInput stilu demonstrācijai"
+    },
+    "modal": {
+      "title": "LxModal",
+      "description": "Šī lapa ir paredzēta LxModal demonstrācijai"
+    },
+    "textArea": {
+      "title": "LxTextArea",
+      "description": "Šajā lapā var apskatīt LxTextArea piemērus"
+    },
+    "dateTimePicker": {
+      "title": "LxDateTimePicker",
+      "description": "Šajā lapā var apskatīt LxDateTimePicker piemērus"
+    },
+    "autoComplete": {
+      "title": "LxAutoComplete",
+      "description": "Šajā lapā var apskatīt LxAutoComplete piemērus"
+    },
+    "filters": {
+      "title": "LxFilters",
+      "description": "Šajā lapā var apskatīt LxFilters piemērus"
+    },
+    "dataBlock": {
+      "title": "LxDataBlock",
+      "description": "Šajā lapā var apskatīt LxDataBlock piemērus"
+    },
+    "dateTimeRange": {
+      "title": "LxDateTimeRange",
+      "description": "Šajā lapā var apskatīt LxDateTimeRange piemērus"
+    },
+    "errorPage": {
+      "title": "LxErrorPage",
+      "description": "Šajā lapā var apskatīt LxErrorPage piemērus"
+    },
+    "toggle": {
+      "title": "LxToggle",
+      "description": "Šajā lapā var apskatīt LxToggle piemērus"
+    },
+    "expander": {
+      "title": "LxExpander",
+      "description": "Šajā lapā var apskatīt LxExpander piemērus"
+    },
+    "checkbox": {
+      "title": "LxCheckbox",
+      "description": "Šajā lapā var apskatīt LxCheckbox piemērus"
+    },
+    "radioButton": {
+      "title": "LxRadioButton",
+      "description": "Šajā lapā var apskatīt LxRadioButton piemērus"
+    },
+    "stateDisplay": {
+      "title": "LxStateDisplay",
+      "description": "Šajā lapā var apskatīt LxStateDisplay piemērus"
+    },
+    "personDisplay": {
+      "title": "LxPersonDisplay"
+    },
+    "map": {
+      "title": "LxMap"
+    },
+    "loader": {
+      "title": "LxLoader",
+      "description": "Šajā lapā var apskatīt LxLoader piemērus"
+    },
+    "qrScanner": {
+      "title": "LxQrScanner"
+    },
+    "guidelines": {
+      "title": "Guidelines",
+      "description": "Šajā lapā var apskatīt komponenšu vadlīnijas"
+    },
+    "icons": {
+      "title": "Ikonu galerija",
+      "description": "Šajā lapā var apskatīt visas pieejamās LX ikonas",
+      "iconCode": "Kods",
+      "iconDescription": "Apraksts"
+    },
+    "dashboard": {
+      "title": "Sākums"
+    },
+    "utility": {
+      "title": "Palīgfunkcijas",
+      "titleShort": "Palīgfunkcijas",
+      "description": "Šajā lapā var apskatīt LxUtils piemērus",
+      "input": "Pieprasījums",
+      "answer": "Atbilde",
+      "query": "Meklēšanas objekts",
+      "text": "Teksts meklēšanai",
+      "cutString": "Sākuma teksts",
+      "cutStringCount": "Atstājamo simbolu skaits",
+      "joinValuesSep": "Atdalītājsimbols",
+      "shortenUserNameFirst": "Pieprasījums (firstName)",
+      "shortenUserNameLast": "Pieprasījums (lastName)",
+      "inputType": "Pieprasījuma veids"
+    },
+    "valuePicker": {
+      "title": "LxValuePicker",
+      "description": "Šajā lapā var apskatīt LxValuePicker piemērus"
+    },
+    "dataGrid": {
+      "title": "LxDataGrid",
+      "description": "Šī lapa ir paredzēta LxDataGrid stilu demonstrācijai"
+    },
+    "login": {
+      "title": "Autorizācija"
+    },
+    "userAgreement": {
+      "title": "Lietotāja vienošanās",
+      "acceptButtonLabel": "Piekrist un turpināt",
+      "declineButtonLabel": "Atteikties un iziet"
+    },
+    "users": {
+      "title": "Lietotāji"
+    },
+    "error": {
+      "goBack": "Atgriezties atpakaļ",
+      "goHome": "Atgriezties uz sākumu",
+      "title": "Notika negaidīta kļūda"
+    },
+    "appendableList": {
+      "title": "LxAppendableList",
+      "description": "Šī lapa ir paredzēta LxAppendableList stilu demonstrācijai"
+    },
+    "auth": {
+      "title": "Notiek apstrāde",
+      "description": "Notiek apstrāde. Lūdzu, uzgaidiet!",
+      "errors": {
+        "unknownTitle": "Nezināma autorizācijas kļūda",
+        "unknownDescription": "Mēģiniet veikt atkārtotu autorizāciju.",
+        "blockedTitle": "Lietotājs ir bloķēts",
+        "blockedDescription": "Sazinieties ar sistēmas administratoru.",
+        "invalidRightsTitle": "Jums nav piešķirtas tiesības lietot šo sistēmu",
+        "invalidRightsDescription": "Sazinieties ar sistēmas administratoru.",
+        "invalidRequestTitle": "Kļūdains autorizācijas pieprasījums",
+        "invalidRequestDescription": "Mēģiniet veikt atkārtotu autorizāciju."
+      }
+    },
+    "loginPickInstitution": {
+      "title": "Iestādes izvēle",
+      "selectInstitution": "Lai uzsāktu darbu, izvēlieties iestādi:",
+      "errors": {
+        "noInstitutions": "Nav piešķirtas tiesības uz nevienu iestādi",
+        "loadingInstitutions": "Notika kļūda veicot iestāžu saraksta ielādi",
+        "selectingInstitution": "Notika kļūda, izvēloties iestādi"
+      }
+    },
+    "loginPickHospital": {
+      "title": "Darba vietas izvēle",
+      "selectHospital": "Izvēlieties filiāli:",
+      "errors": {
+        "noHospitals": "Šai iestādei nav nevienas aktīvas slimnīcas",
+        "loadingHospitals": "Notika kļūda veicot slimnīcu saraksta ielādi"
+      }
+    },
+    "loginPickRole": {
+      "title": "Darba vietas izvēle",
+      "selectRole": "Izvēlieties lomu:",
+      "errors": {
+        "noRoles": "Nav piešķirtas tiesības uz nevienu lomu",
+        "loadingRoles": "Notika kļūda veicot lomu saraksta ielādi"
+      }
+    },
+    "usageAgreement": {
+      "title": "Lietošanas noteikumi",
+      "needToAgreeTitle": "Jāpiekrīt lietošanas noteikumiem!",
+      "needToAgree": "Lai izmantotu sistēmu, nepieciešams piekrist lietošanas noteikumiem",
+      "buttons": {
+        "accept": "Piekrist un turpināt",
+        "acceptHelp": "Iepazinos ar lietošanas noteikumiem un tiem piekrītu",
+        "decline": "Atteikties un iziet",
+        "declineHelp": "Nepiekrītu lietošanas noteikumiem (darbu ar sistēmu nav iespējams turpināt)"
+      },
+      "errors": {
+        "acceptFailed": "Radās kļūda, veicot piekrišanas lietošanas noteikumiem saglabāšanu"
+      }
+    },
+    "notFound": {
+      "title": "Lapa nav atrasta",
+      "description": "Pārbaudiet, vai lapas adrese ir pareiza un mēģiniet vēlreiz, vai atgriezieties uz sākumlapu"
+    }
+  },
+  "confirm": {
+    "yes": "Jā",
+    "no": "Nē"
+  },
+  "menu": {
+    "home": "Sākums",
+    "users": "Lietotāji",
+    "login": "Autorizācija",
+    "logout": "Iziet"
+  },
+  "components": {
+    "dataGrid": {
+      "itemLabel": {
+        "singular": "ieraksts",
+        "plural": "ieraksti",
+        "pluralEndingWith234": "ieraksti",
+        "pluralEndingWith1": "ieraksts"
+      },
+      "ofItemsLabel": {
+        "singular": "ieraksta",
+        "plural": "ierakstiem",
+        "pluralEndingWith234": "ierakstiem",
+        "pluralEndingWith1": "ieraksta"
+      },
+      "itemsOfLabel": "Ieraksti",
+      "ofLabel": "no",
+      "nextPage": "Nākamā lapa",
+      "previousPage": "Iepriekšējā lapa"
+    }
+  },
+  "errors": {
+    "logoutFailed": "Radās kļūda, veicot atteikšanos no sistēmas, pārlādējiet lapu un mēģiniet atkārtoti.",
+    "classifierLoadFailed": "Radās kļūda, ielādējot filtra klasifikatorus, pārlādējiet lapu un mēģiniet atkārtoti.",
+    "roleLoadFailed": "Radās kļūda, ielādējot lietotāja lomas, pārlādējiet lapu un mēģiniet atkārtoti.",
+    "institutionLoadFailed": "Radās kļūda, ielādējot lietotājam pieejamās iestādes, pārlādējiet lapu un mēģiniet atkārtoti.",
+    "hospitalLoadFailed": "Radās kļūda, ielādējot lietotājam pieejamās slimnīcas, pārlādējiet lapu un mēģiniet atkārtoti.",
+    "forbidden": "Jums nav tiesību veikt šo darbību!",
+    "loadFailed": "Neizdevās ielādēt datus",
+    "helpLoadFailed": "Neizdevās ielādēt palīdzības informāciju"
+  }
+}
