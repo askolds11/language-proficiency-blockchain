@@ -20,6 +20,32 @@ internal class InternalService(
     IOptionsMonitor<RsaKeyHolder> rsaKeyHolder
 )
 {
+    public async Task AssignRoleAsync(Guid userId, UserRole role)
+    {
+        var userExists = await dbContext.Users.AnyAsync(x => x.Id == userId);
+        if (!userExists)
+        {
+            throw new InvalidOperationException("User not found");
+        }
+
+        var roleExists = await dbContext.UserRoles.AnyAsync(x => x.UserId == userId && x.Role == role);
+        if (roleExists)
+        {
+            return; // Role already assigned
+        }
+
+        var roleAssignment = new UserRoleAssociation
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Role = role,
+            AssignedAt = DateTime.UtcNow
+        };
+
+        dbContext.UserRoles.Add(roleAssignment);
+        await dbContext.SaveChangesAsync();
+    }
+
     public async Task AddInstitution(Guid id, string name, string address, string publicKeyPem)
     {
         var exists = await dbContext.Institutions.AnyAsync(x => x.Id == id);

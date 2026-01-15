@@ -5,11 +5,11 @@ import useViewStore from '@/stores/useViewStore';
 import { computed, onMounted, shallowRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-
 import ReadmeWizard from '@/components/ReadmeWizard.vue';
 
 const { lxVersions } = window.config;
 
+const authStore = useAuthStore();
 const viewStore = useViewStore();
 const viewportHeight = shallowRef(0);
 const viewportWidth = shallowRef(0);
@@ -75,13 +75,16 @@ onMounted(async () => {
   viewStore.showNavBar();
   window.addEventListener('resize', resize);
 });
+
+
 </script>
 
 <template>
   <div>
     <div class="lx-dashboard" width="m" height="s">
-      <LxTile icon="registry" :label="'Tests'" description="Language test result list" :to="{ name: 'results' }" style="font-size: 20px;" />
-      <LxTile icon="add" :label="'Add test'" description="Language test input" :to="{ name: 'resultDetails' }" style="font-size: 20px;" />
+      <LxTile v-if="authStore.session.roles === 'Student'" icon="registry" :label="'Tests'" description="Language test result list" :to="{ name: 'results' }"/>
+      <LxTile v-if="authStore.session.roles === 'Verificator'" icon="add" :label="'Add test'" description="Language test input" :to="{ name: 'operatorResultDetails' }"/>
+      <LxTile v-if="authStore.session.roles === 'Student'" icon="share" :label="'Share results'" description="Language test sharing" :to="{ name: 'share' }"/>
     </div>
   </div>
 </template>

@@ -98,6 +98,18 @@ builder.Services.Configure<JsonOptions>(options =>
     options.SerializerOptions.PropertyNameCaseInsensitive = false;
 });
 
+// Add CORS policy - Allow any origin
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policyBuilder =>
+    {
+        policyBuilder
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
 // Apply database migrations at startup
@@ -113,8 +125,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+else
+{
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
+// Use CORS policy
+app.UseCors("AllowFrontend");
 
 // Add authentication and authorization middleware
 app.UseAuthentication();

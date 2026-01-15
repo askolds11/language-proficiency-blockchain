@@ -20,4 +20,6 @@ RUN dotnet publish "./language-proficiency-blockchain.csproj" -c $BUILD_CONFIGUR
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY ["language-proficiency-blockchain/public.pem", "."]
+COPY ["language-proficiency-blockchain/private.pem", "."]
 ENTRYPOINT ["dotnet", "language-proficiency-blockchain.dll"]

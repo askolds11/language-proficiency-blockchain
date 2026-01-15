@@ -38,6 +38,7 @@ const openModal = () => {
 };
 
 async function logout() {
+  console.log('t1')
   try {
     const resp = await authStore.logout();
     if (resp.status === 200 && resp.data !== '') {
