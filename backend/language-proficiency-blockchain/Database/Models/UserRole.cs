@@ -1,8 +1,10 @@
 ﻿namespace language_proficiency_blockchain.Database.Models;
+using System.Text.Json.Serialization;
 
 /// <summary>
 /// Enumeration of user roles in the system.
 /// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum UserRole
 {
     /// <summary>

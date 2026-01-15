@@ -2,9 +2,9 @@
 import { computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { LxShell, LxModal } from '@wntr/lx-ui';
-import CoverBackground from '@/components/CoverBackground.vue';
+import { LxShell, LxIcon, lxDateUtils } from '@wntr/lx-ui';
 import { invoke, until, useIdle, useIntervalFn } from '@vueuse/core';
+
 
 import LoginView from '@/views/Login.vue';
 import useErrors from '@/hooks/useErrors';
@@ -13,8 +13,8 @@ import useAppStore from '@/stores/useAppStore';
 import useNotifyStore from '@/stores/useNotifyStore';
 import useConfirmStore from '@/stores/useConfirmStore';
 import useViewStore from '@/stores/useViewStore';
+import CoverBackground from '@/components/CoverBackground.vue';
 
-const { t } = useI18n();
 const authStore = useAuthStore();
 const notify = useNotifyStore();
 const viewStore = useViewStore();
@@ -30,34 +30,84 @@ const { idle } = useIdle(secondsToIdle * 1000);
 
 const idleModalOpened = ref(false);
 
-const translate = useI18n();
+// ToDo: develop login & get session
+// eslint-disable-next-line no-unused-vars
+
+const i18n = useI18n();
+const { t } = useI18n();
 const route = useRoute();
+const routes = router.getRoutes();
 const shellMode = computed(() => {
-  let ret = 'default';
-  if (route.path === '/') {
+  let ret = 'public';
+  if (route.name === 'home') {
     ret = 'cover';
   }
   return ret;
 });
 
-const nav = [
-  {
-    label: 'Start',
-    icon: 'collapse-right',
-    to: { name: 'dashboard' },
-  },  
-];
 
-const systemName = computed(() => translate.t('title.shortName'));
-const pageTitle = computed(() => translate.t(router.currentRoute.value.meta.title));
+const systemName = computed(() => i18n.t('title.shortName'));
+
+const pageTitle = computed(() => {
+  if (typeof route.meta.title === 'function') {
+    return route.meta.title(i18n);
+  }
+  if (typeof route.meta.title === 'string') {
+    return viewStore?.pageTitle || i18n.t(route.meta.title);
+  }
+  return '';
+});
+
+const pageDescription = computed(() => {
+  if (typeof route.meta.description === 'function') {
+    return route.meta.description(i18n);
+  }
+  if (typeof route.meta.description === 'string') {
+    return viewStore?.pageDescription || i18n.t(route.meta.description);
+  }
+  return '';
+});
+
+
+const nav = computed(() => {
+  const items = [];
+  if (authStore.session.st !== 'authorized') {
+    return items;
+  }
+  items.push({
+    label: 'Dashboard',
+    icon: 'dashboard',
+    to: { name: 'dashboard' },
+  })
+  if (authStore.session.roles !== 'Operator') {
+    items.push({
+    label: 'Results',
+    to: { name: 'results' },
+  })
+  }
+  if (authStore.session.roles === 'Operator') {
+    items.push({
+    label: 'Results',
+    to: { name: 'operatorResultDetails' },
+  })
+  }
+  if (authStore.session.roles === 'Student') {
+    items.push({
+    label: 'Share',
+    to: { name: 'share' },
+  })
+  }
+  return items;
+});
 
 const breadcrumbs = computed(() => {
   const ret = [];
 
   if (route.meta.breadcrumbs) {
+    // @ts-ignore
     route.meta.breadcrumbs.forEach((item) => {
       ret.push({
-        label: translate.t(item.text),
+        label: viewStore?.backRouteName || i18n.t(item.text),
         to: item.to,
       });
     });
@@ -65,12 +115,17 @@ const breadcrumbs = computed(() => {
   return ret;
 });
 
-const showBackButton = computed(() => breadcrumbs.value.length > 0);
+const showBackButton = computed(() =>
+  viewStore?.canGoBack === false
+    ? viewStore.canGoBack
+    : breadcrumbs.value.length > 0,
+);
 
 const selectedNavItems = computed(() => {
   const ret = {};
   ret[router.currentRoute.value.name] = true;
   if (route.meta?.breadcrumbs) {
+    // @ts-ignore
     route.meta?.breadcrumbs.forEach((item) => {
       ret[item.to?.name] = true;
     });
@@ -95,54 +150,202 @@ onMounted(() => {
   }
 });
 
-const systemIcon = ref('eidas');
-
 const userInfo = computed(() => {
   if (authStore.isAuthorized) {
     return {
-      firstName: authStore.session?.given_name,
-      lastName: authStore.session?.family_name,
-      description: authStore.session?.role ? t(`roles.${authStore.session?.role}`) : null,
-      institution: null,
+      firstName: authStore.session?.email,
+      lastName: authStore.session?.roles,
     };
   }
   return null;
 });
 
-const theme = ref('auto');
+const closeModal = () => {
+  idleModalOpened.value = false;
+};
 
+const openModal = () => {
+  idleModalOpened.value = true;
+};
+
+async function logout() {
+  try {
+    const resp = await authStore.logout();
+    if (resp?.status === 200 && resp?.data) {
+      window.location.href = resp.data;
+    } else {
+      notify.pushSuccess('Signed out');
+    }
+  } catch (err) {
+    const error = errors.get(err);
+    if (error.status !== 401 && error.data) {
+      notify.pushError(error.data);
+    }
+  } finally {
+    closeModal();
+    router.push({ name: 'home' });
+  }
+  console.log('start')
+  console.log(authStore.session)
+}
+
+function primary() {
+  logout();
+  confirmStore.$state.isOpen = false;
+}
+function secondary() {
+  confirmStore.$state.isOpen = false;
+}
+
+function openConfirmModal() {
+  confirmStore.push(
+    "Sign out",
+    "Really want to sign out?",
+    "Yes",
+    "No",
+    primary,
+    secondary,
+  );
+}
+
+function confirmModalClosed() {
+  confirmStore.$state.isOpen = false;
+}
+
+async function getSession() {
+  try {
+    await authStore.fetchSession();
+  } catch (err) {
+    const error = errors.get(err);
+    if (error.status === 401) {
+      logout();
+    } else if (error.data) {
+      notify.pushError(error.data);
+    }
+  }
+}
+
+async function callKeepAlive() {
+  try {
+    await authStore.keepAlive();
+  } catch (err) {
+    const error = errors.get(err);
+    if (error.status === 401) {
+      logout();
+    } else if (error.data) {
+      notify.pushError(error.data);
+    }
+  }
+}
+
+const checkApiSession = () => {
+  if (idle.value || idleModalOpened.value) {
+    getSession();
+  } else {
+    callKeepAlive();
+  }
+};
+
+useIntervalFn(() => {
+  if (!authStore.session.active) {
+    if (idleModalOpened.value) {
+      closeModal();
+      router.push({ name: 'sessionTimeout' });
+    }
+    return;
+  }
+  if (authStore.session.secondsToLive < 1) {
+    logout();
+    closeModal();
+    return;
+  }
+  if (authStore.session.secondsToLive < authStore.session.secondsToCountdown) {
+    if (!idleModalOpened.value) {
+      openModal();
+    }
+  } else if (idleModalOpened.value) {
+    closeModal();
+    return;
+  }
+  const refreshIntervals =
+    authStore.session.secondsToLive % secondsCheckApiInterval === 0;
+  const refreshBeforeWarn =
+    authStore.session.secondsToLive - 3 <
+      authStore.session.secondsToCountdown && !idle.value;
+  const refreshBeforeLogout = authStore.session.secondsToLive === 3;
+  if (refreshIntervals || refreshBeforeWarn || refreshBeforeLogout) {
+    checkApiSession();
+  }
+  authStore.session.secondsToLive -= 1;
+}, 1000);
+
+async function continueSession() {
+  try {
+    await authStore.keepAlive();
+    notify.pushSuccess(i18n.t('shell.notifications.sessionContinued'));
+  } catch (err) {
+    notify.pushError(i18n.t('shell.notifications.sessionContinuedFailed'));
+    if (err.response.status === 401) {
+      logout();
+    }
+  } finally {
+    closeModal();
+  }
+}
+
+invoke(async () => {
+  // @ts-ignore
+  await until(() => authStore.showSessionEndCountdown).toBe(true);
+  notify.pushWarning(i18n.t('shell.notifications.sessionEndingSoon'));
+});
+
+function idleModalPrimary() {
+  continueSession();
+}
+function idleModalSecondary() {
+  logout();
+}
 </script>
 <template>
   <div>
     <div>
       <LxShell
-        :system-name="'Language proficiency test result system'"
-        :system-subheader="'All results in one place'"
-        :system-name-short="'LPTRS'"
+        :system-name="i18n.t('title.fullName')"
+        :system-subheader="i18n.t('title.subheader')"
+        :system-name-short="systemName"
         :user-info="userInfo"
+        :mode="shellMode"
         :nav-items="nav"
         :nav-items-selected="selectedNavItems"
-        :mode="shellMode"
         :page-label="pageTitle"
+        :pageDescription="pageDescription"
         :page-back-button-visible="showBackButton"
         :page-breadcrumbs="breadcrumbs"
         :page-index-path="{ name: 'home' }"
-        :system-icon="systemIcon"
-        :has-cover-logo="false"
+        :has-cover-logo="true"
         :cover-image="null"
         :cover-image-dark="null"
-        :cover-logo="false"
-        :has-alerts="false"
+        :cover-logo="null"
         :has-theme-picker="true"
         :navigating="appStore.$state.isNavigating"
         :showIdleModal="idleModalOpened"
+        :showIdleBadge="
+          authStore.session.secondsToLive <
+            authStore.session.secondsToCountdown &&
+          !authStore.session.isSessionExtendable
+        "
+        :secondsToLive="authStore.session.secondsToLive"
+        :confirmDialogData="confirmStore"
         :confirmPrimaryButtonBusy="false"
         :confirmPrimaryButtonDestructive="true"
-        v-model:theme="theme"
-        :hideNavBar="!viewStore.navBar"
+        v-model:notifications="notify.notifications"
+        :hideNavBar="!viewStore?.isNavBarShown"
+        :headerNavDisable="viewStore.blockNav"
+        :hideHeaderText="!viewStore?.isHeaderShown"
         @confirmModalClosed="confirmModalClosed"
         @go-home="goHome"
         @go-back="goBack"
+        @log-out="openConfirmModal"
         @idleModalPrimary="idleModalPrimary"
         @idleModalSecondary="idleModalSecondary"
       >
@@ -151,44 +354,9 @@ const theme = ref('auto');
         </template>
         <template #coverArea>
           <div class="lx-button-set">
-            <LoginView></LoginView>
+            <LoginView />
           </div>
         </template>
-
-        <template #logo>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-            x="0px"
-            y="0px"
-            viewBox="0 0 50 50"
-          >
-            <path
-              d="M25,1.7C12.1,1.7,1.7,12.1,1.7,25c0,8.4,4.5,15.8,11.2,19.9L25,32.8l0,0l0,0l9.1,9.1c0,0,0,0,0,0l3,3
-	c6.7-4.1,11.2-11.5,11.2-20C48.3,12.1,37.9,1.7,25,1.7z M12.6,39.6C8.4,36.1,5.8,30.8,5.8,25c0-3.3,0.8-6.3,2.3-9L22.1,30L12.6,39.6
-	z M10.4,12.6c3.5-4.1,8.8-6.8,14.6-6.8c5.8,0,11.1,2.6,14.6,6.8L25,27.2L10.4,12.6z M37.4,39.6L27.8,30l14.1-14.1
-	c1.5,2.7,2.3,5.8,2.3,9.1C44.2,30.9,41.5,36.1,37.4,39.6z"
-            />
-          </svg>
-        </template>
-
-        <template #logoSmall>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-            x="0px"
-            y="0px"
-            viewBox="0 0 50 50"
-          >
-            <path
-              d="M25,1.7C12.1,1.7,1.7,12.1,1.7,25c0,8.4,4.5,15.8,11.2,19.9L25,32.8l0,0l0,0l9.1,9.1c0,0,0,0,0,0l3,3
-	c6.7-4.1,11.2-11.5,11.2-20C48.3,12.1,37.9,1.7,25,1.7z M12.6,39.6C8.4,36.1,5.8,30.8,5.8,25c0-3.3,0.8-6.3,2.3-9L22.1,30L12.6,39.6
-	z M10.4,12.6c3.5-4.1,8.8-6.8,14.6-6.8c5.8,0,11.1,2.6,14.6,6.8L25,27.2L10.4,12.6z M37.4,39.6L27.8,30l14.1-14.1
-	c1.5,2.7,2.3,5.8,2.3,9.1C44.2,30.9,41.5,36.1,37.4,39.6z"
-            />
-          </svg>
-        </template>
-
         <router-view />
       </LxShell>
     </div>
