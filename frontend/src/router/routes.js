@@ -18,18 +18,25 @@ const routes = [
         name: 'results',
         meta: {
           title: 'Tests',
+          anonymous: true,
+          breadcrumbs: [
+            {
+              text: 'Dashboard',
+              to: { name: 'dashboard' },
+            },
+          ],
         },
         component: () => import('@/views/Results.vue'),
       },
       {
-        path: '/resultDetails',
+        path: '/result-details',
         name: 'resultDetails',
         meta: {
           title: 'Test list',
           anonymous: true,
           breadcrumbs: [
             {
-              text: 'results',
+              text: 'Results',
               to: { name: 'results' },
             },
           ],
@@ -37,9 +44,29 @@ const routes = [
         component: () => import('@/views/ResultDetails.vue'),
       },
       {
+        path: '/operator-result-details',
+        name: 'operatorResultDetails',
+        component: () => import('@/views/OperatorResultDetails.vue'),
+      },
+      {
+        path: '/share',
+        name: 'share',
+        meta: {
+          title: 'Share results',
+          anonymous: true,
+          breadcrumbs: [
+            {
+              text: 'Dashboard',
+              to: { name: 'dashboard' },
+            },
+          ],
+        },
+        component: () => import('@/views/ShareDetails.vue'),
+      },
+      {
         path: '/authorization',
         name: 'authorization',
-        meta: { title: 'authorization' },
+        meta: { title: 'Authorization' },
         component: () => import('@/views/Authorization.vue'),
       },
       {
@@ -52,58 +79,10 @@ const routes = [
         path: '/dashboard',
         name: 'dashboard',
         meta: {
-          title: 'pages.dashboard.title',
+          title: 'Dashboard',
           anonymous: true,
         },
         component: () => import('@/views/Dashboard.vue'),
-      },
-
-      {
-        path: '/sandbox/icon/guidelines',
-        name: 'iconGuidelines',
-        meta: {
-          title: 'pages.icon.title',
-          anonymous: true,
-          breadcrumbs: [
-            {
-              text: 'pages.sandbox.title',
-              to: { name: 'sandbox' },
-            },
-          ],
-        },
-        component: () => import('@/views/guidelines/Icon.vue'),
-      },
-
-      {
-        path: '/sandbox/data-grid/example',
-        name: 'apiDataGrid',
-        meta: {
-          title: 'pages.dataGrid.title',
-          scope: ['game/list'],
-          state: 'authorized',
-          breadcrumbs: [
-            {
-              text: 'pages.sandbox.title',
-              to: { name: 'sandbox' },
-            },
-          ],
-        },
-        component: () => import('@/views/APIData/DataGrid.vue'),
-      },
-      {
-        path: '/sandbox/data-grid/guidelines',
-        name: 'dataGridGuidelines',
-        meta: {
-          title: 'pages.dataGrid.title',
-          anonymous: true,
-          breadcrumbs: [
-            {
-              text: 'pages.sandbox.title',
-              to: { name: 'sandbox' },
-            },
-          ],
-        },
-        component: () => import('@/views/guidelines/DataGrid.vue'),
       },
     ],
   },

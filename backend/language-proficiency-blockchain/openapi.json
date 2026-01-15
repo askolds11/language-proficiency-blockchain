@@ -287,6 +287,40 @@
           }
         }
       }
+    },
+    "/api/internal/assign-role": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Assigns a role to a user.",
+        "requestBody": {
+          "description": "Assign role payload.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRoleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -430,6 +464,25 @@
             }
           }
         }
+      },
+      "AssignRoleRequest": {
+        "required": [
+          "userId",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Id of the user",
+            "format": "uuid"
+          },
+          "role": {
+            "description": "Role to assign",
+            "$ref": "#/components/schemas/UserRole"
+          }
+        },
+        "description": "Request for assigning a role to a user."
       },
       "AuthenticationResponse": {
         "required": [

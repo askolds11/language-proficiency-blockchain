@@ -26,37 +26,41 @@ const testData = ref({
   }
 );
 
-const actionDefinitions = computed(() => {
-  const actions = [];
 
-if (authStore.session.roles === 'Verificator') {
- actions.push({
-    id: 'verify',
-    name: 'Verify',
-    icon: 'check',
-    kind: 'tertiary',
-  })
+const invalidFields = ref({});
+
+const actionDefinitions = [
+{
+    id: 'save',
+    name: 'Save',
+    icon: 'save',
+    kind: 'primary',
+  },
+  {
+    id: 'cancel',
+    name: 'Cancel',
+    icon: 'cancel',
+    kind: 'secondary',
+  }
+];
+
+function nullAllExcept(obj) {
+  Object.keys(obj).forEach(key => {
+    if (key !== 'resultInputterCode') {
+      obj[key] = null;
+    }
+  });
 }
 
-  actions.push({
-    id: 'back',
-    name: 'Back',
-    icon: 'back',
-    kind: 'primary',
-  })
-
-
-
- return actions;
-});
 
 function buttonClicked(actionId){
-if (actionId ==='back') {
-  router.push({ name: 'results' });
-} else if (actionId === 'verify') {
- //TODO Verify call
+if (actionId === 'save') {
+  if (validate()) {
+    //TODO Save call
+  }
+} else if (actionId === 'cancel') {
+  nullAllExcept(testData);
 }
-
 }
 
 const testTypes = [
@@ -69,6 +73,51 @@ const testTypes = [
         name:'TOEFL',
     },
 ]
+
+
+
+function validate(){
+
+    invalidFields.value = {};
+    let isValid = true;
+
+    if (!testData.key) {
+      invalidFields.value.key = 'Mandatory';
+      isValid = false;
+    }
+
+    if (!testData.type) {
+      invalidFields.value.type = 'Mandatory';
+      isValid = false;
+    }
+
+    if (!testData.readingScore) {
+      invalidFields.value.readingScore = 'Mandatory';
+      isValid = false;
+    }
+
+    if (!testData.writtingScore) {
+      invalidFields.value.writtingScore = 'Mandatory';
+      isValid = false;
+    }
+
+    if (!testData.speakingScore) {
+      invalidFields.value.speakingScore = 'Mandatory';
+      isValid = false;
+    }
+
+    if (!testData.listeningScore) {
+      invalidFields.value.listeningScore = 'Mandatory';
+      isValid = false;
+    }
+
+    if (!testData.dateOfExamination) {
+      invalidFields.value.dateOfExamination = 'Mandatory';
+      isValid = false;
+    }
+    return isValid;
+
+}
 
 const mask = computed(() => {
 if (testData.value.type === 'IELTS') {
@@ -125,7 +174,9 @@ testData.value.type = testTypes[0].id;
             <LxTextInput 
             v-model="testData.key"
             :mask="mask"
-            :read-only="true"
+            :read-only="false"
+            :invalid="invalidFields.key"
+            :invalidationMessage="invalidFields.key"
         />
         </LxRow>
         <LxRow label="Type">
@@ -134,41 +185,53 @@ testData.value.type = testTypes[0].id;
               :items="testTypes"
               :variant="'tags'"
               :mask="mask"
-              :read-only="true"
+              :read-only="false"
+              :invalid="invalidFields.type"
+              :invalidationMessage="invalidFields.type"
             />
         </LxRow>
         <LxRow label="Reading score">
             <LxTextInput
               v-model="testData.readingScore"
               :mask="mask"
-              :read-only="true"
+              :read-only="false"
+              :invalid="invalidFields.readingScore"
+              :invalidationMessage="invalidFields.readingScore"
             />
         </LxRow>
         <LxRow label="Writting score">
             <LxTextInput 
               v-model="testData.writtingScore" 
               :mask="mask"
-              :read-only="true"
+              :read-only="false"
+              :invalid="invalidFields.writtingScore"
+              :invalidationMessage="invalidFields.writtingScore"
               />
         </LxRow>
         <LxRow label="Speaking score">
             <LxTextInput
               v-model="testData.speakingScore"
               :mask="mask"
-              :read-only="true"
+              :read-only="false"
+              :invalid="invalidFields.speakingScore"
+              :invalidationMessage="invalidFields.speakingScore"
             />
         </LxRow>
         <LxRow label="Listening score">
             <LxTextInput 
               v-model="testData.listeningScore"
               :mask="mask"
-              :read-only="true"
+              :read-only="false"
+              :invalid="invalidFields.listeningScore"
+              :invalidationMessage="invalidFields.listeningScore"
             />
         </LxRow>
         <LxRow label="Total score">
             <LxTextInput 
               v-model="finalResult"
               :mask="mask"
+              :invalid="invalidFields.totalScore"
+              :invalidationMessage="invalidFields.totalScore"
               :read-only="true"
             />
         </LxRow>
@@ -176,7 +239,9 @@ testData.value.type = testTypes[0].id;
             <LxDateTimePicker
               v-model="testData.dateOfExamination"
               :mask="mask"
-              :read-only="true"
+              :read-only="false"
+              :invalid="invalidFields.dateOfExamination"
+              :invalidationMessage="invalidFields.dateOfExamination"
             />
         </LxRow>
     </LxForm>

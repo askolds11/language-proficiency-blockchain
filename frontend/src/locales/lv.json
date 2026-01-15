@@ -2,10 +2,10 @@
   "title": {
     "default": "<APP-NAME-DESCRIPTION>",
     "prefix": "",
-    "fullName": "Demo",
-    "fullNameFormatted": "LX komponenšu un moduļu demo portāls",
-    "subheader": "LX komponenšu un moduļu demo portāls",
-    "shortName": "Demo"
+    "fullName": "LPTRS",
+    "fullNameFormatted": "LPTRS",
+    "subheader": "Language proficiency test result system",
+    "shortName": "LPTRS"
   },
   "roles": {
     "GAMER": "Ludomāns parastais",
@@ -18,7 +18,7 @@
   "shell": {
     "userProfile": "Skatīt profilu",
     "changeOrganization": "Mainīt iestādi",
-    "logOut": "Iziet",
+    "logOut": "Log out",
     "notifications": {
       "logOut": "Jūsu sesija ir veiksmīgi pabeigta",
       "agreement": "Jums ir jāpiekrīt lietošanas noteikumiem",
@@ -352,7 +352,7 @@
     "home": "Sākums",
     "users": "Lietotāji",
     "login": "Autorizācija",
-    "logout": "Iziet"
+    "logout": "Log out"
   },
   "components": {
     "dataGrid": {
