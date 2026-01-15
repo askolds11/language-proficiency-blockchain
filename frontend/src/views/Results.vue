@@ -1,6 +1,6 @@
 <script setup>
 import { shallowRef, onMounted , computed } from 'vue';
-import { LxList } from '@wntr/lx-ui';
+import { LxList, LxForm, LxRow } from '@wntr/lx-ui';
 import useAuthStore from '@/stores/useAuthStore';
 import useAppStore from '@/stores/useAppStore';
 import router from '@/router';
@@ -35,12 +35,20 @@ onMounted(async () => {
 </script>
 <template>
   <div>
-    <LxList
-      :items="roleList"
-      @actionClick="toDetails"
-      idAttribute="id"
-      primaryAttribute="label"
-      secondaryAttribute="description"
-    />
+    <LxForm
+      :column-count="2"
+      :show-header="false"
+      :show-footer="false"
+    >
+    <LxRow :column-span="2" label="Test list:">
+      <LxList
+        :items="roleList"
+        @actionClick="toDetails"
+        idAttribute="id"
+        primaryAttribute="label"
+        secondaryAttribute="description"
+      />
+    </LxRow>
+    </LxForm>
   </div>
 </template>

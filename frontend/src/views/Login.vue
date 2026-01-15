@@ -6,7 +6,7 @@ import { LxButton } from '@wntr/lx-ui';
 <template>
   <LxButton
     :href="{ name: 'authorization' }"
-    :label="'Autorizēties'"
+    :label="'Authorize'"
     icon="arrow-right"
   />
 </template>
