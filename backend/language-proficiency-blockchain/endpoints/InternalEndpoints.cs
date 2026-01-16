@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.requests.Internal;
 using language_proficiency_blockchain.services;
@@ -40,6 +41,14 @@ public class InternalEndpoints : IEndpoint
 
         group.MapPost("assign-role", AssignRole)
             .AllowAnonymous();
+        group.MapPost("student", AddStudent)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
+
+        group.MapGet("students", GetStudents)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.Everyone);
+
+        group.MapPost("ping", Ping)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.Everyone);
         // group.MapPost("nodes/{id:guid}/approve", ApproveNode);
         // group.MapGet("nodes", ListNodes);
         // group.MapGet("chain", GetChain);
@@ -62,6 +71,37 @@ public class InternalEndpoints : IEndpoint
         [FromBody] AddInstitutionRequest req)
     {
         await internalService.AddInstitution(req.Id, req.Name, req.Address, req.PublicKeyPem);
+
+        return TypedResults.Ok();
+    }
+
+    /// <summary>
+    /// Add a new student.
+    /// </summary>
+    /// <param name="internalService">Internal service.</param>
+    /// <param name="req">Student payload.</param>
+    /// <returns>
+    /// 200 OK if added successfully
+    /// </returns>
+    internal static async Task<Results<Ok, BadRequest<string>>> AddStudent(
+        [FromServices] InternalService internalService,
+        [FromBody] AddStudentRequest req)
+    {
+        await internalService.AddStudent(req.Id, req.Name, req.Surname);
+
+    /// <summary>
+    /// Get all students.
+    /// </summary>
+    /// <param name="dbContext">Database context.</param>
+    /// <returns>
+    /// 200 OK with list of all students.
+    /// </returns>
+    internal static async Task<Ok<IEnumerable<StudentEntity>>> GetStudents(
+        [FromServices] AppDbContext dbContext)
+    {
+        var students = await dbContext.Students.ToListAsync();
+        return TypedResults.Ok((IEnumerable<StudentEntity>)students);
+    }
 
         return TypedResults.Ok();
     }
