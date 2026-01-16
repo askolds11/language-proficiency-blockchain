@@ -190,20 +190,24 @@ internal sealed class BlockchainService(AppDbContext db, ICryptoService cryptoSe
         return (genesis.Id, genesis.Hash);
     }
 
-    private async Task<Guid> ValidateQuorumAsync(byte[] hash, IReadOnlyCollection<BlockSignature> signatures,
+    private async Task<Guid?> ValidateQuorumAsync(byte[] hash, IReadOnlyCollection<BlockSignature> signatures,
         CancellationToken ct)
     {
-        var totalInstitutions = await db.Institutions.CountAsync(ct);
-        if (totalInstitutions == 0)
+        // Count only institutions that have been added to the blockchain (have a block)
+        var totalInstitutionsWithBlocks = await db.Institutions.CountAsync(i => i.BlockId != null, ct);
+        
+        // Bootstrap case: no institutions with blocks yet - this is the first institution being added
+        // Allow it without quorum (the proposer's signature from InternalService is sufficient)
+        if (totalInstitutionsWithBlocks == 0)
         {
-            throw new InvalidOperationException("No institutions available to sign.");
+            return null; // No author institution for the first block
         }
 
-        var quorum = (totalInstitutions + 1) / 2; // at least half, rounded up
+        var quorum = Math.Max(1, (totalInstitutionsWithBlocks + 1) / 2); // at least half, rounded up, minimum 1
         var signerIds = signatures.Select(s => s.InstitutionId).Distinct().ToArray();
 
         var institutions = await db.Institutions
-            .Where(i => signerIds.Contains(i.Id))
+            .Where(i => signerIds.Contains(i.Id) && i.BlockId != null)
             .ToDictionaryAsync(i => i.Id, ct);
 
         var validSigners = new List<Guid>();

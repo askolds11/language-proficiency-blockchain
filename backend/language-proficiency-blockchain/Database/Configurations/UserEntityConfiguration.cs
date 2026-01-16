@@ -12,5 +12,10 @@ internal class UserEntityConfiguration : IEntityTypeConfiguration<UserEntity>
     public void Configure(EntityTypeBuilder<UserEntity> builder)
     {
         builder.HasIndex(u => u.Email).IsUnique();
+        
+        builder.HasOne(u => u.Student)
+            .WithOne()
+            .HasForeignKey<UserEntity>(u => u.StudentId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

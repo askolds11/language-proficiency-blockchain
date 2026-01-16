@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace language_proficiency_blockchain.Database.Models;
 
 /// <summary>
 /// Represents a user in the system with authentication credentials.
 /// </summary>
+[Index(nameof(StudentId), IsUnique = true)]
 public class UserEntity
 {
     /// <summary>
@@ -12,6 +15,11 @@ public class UserEntity
     /// </summary>
     [Key]
     public required Guid Id { get; init; }
+
+    /// <summary>
+    /// Optional link to a student record. Null if the user is not a student.
+    /// </summary>
+    public Guid? StudentId { get; init; }
 
     /// <summary>
     /// Email address of the user (unique).
@@ -34,4 +42,10 @@ public class UserEntity
     /// Last update timestamp of the user.
     /// </summary>
     public required DateTime UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Navigation to the linked student record (if any).
+    /// </summary>
+    [ForeignKey(nameof(StudentId))]
+    internal StudentEntity? Student { get; init; }
 }

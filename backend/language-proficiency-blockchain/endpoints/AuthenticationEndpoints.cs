@@ -32,7 +32,7 @@ public class AuthenticationEndpoints : IEndpoint
     {
         try
         {
-            var user = await authService.RegisterAsync(req.Email, req.Password, ct);
+            var user = await authService.RegisterAsync(req.Email, req.Password, req.StudentId, ct);
             var roles = await authService.GetUserRolesAsync(user.Id, ct);
             var (token, expiresAt) = authService.GenerateToken(user, roles);
 

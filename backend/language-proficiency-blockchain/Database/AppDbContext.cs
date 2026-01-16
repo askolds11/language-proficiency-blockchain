@@ -13,6 +13,7 @@ internal class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(
     public DbSet<TestResultEntity> TestResults { get; init; }
     public DbSet<UserEntity> Users { get; init; }
     public DbSet<UserRoleAssociation> UserRoles { get; init; }
+    public DbSet<ShareCodeEntity> ShareCodes { get; init; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

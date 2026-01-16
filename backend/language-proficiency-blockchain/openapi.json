@@ -273,6 +273,47 @@
         }
       }
     },
+    "/api/internal/institution-block": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Proposes a new institution block to the blockchain.",
+        "requestBody": {
+          "description": "Cancellation token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddInstitutionBlockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/internal/ping": {
       "post": {
         "tags": [
@@ -284,6 +325,101 @@
           },
           "400": {
             "description": "Bad Request"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Internal"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/internal/test": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Proposes a new test block to the blockchain.",
+        "requestBody": {
+          "description": "Cancellation token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/internal/test-result": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Proposes a new test result block to the blockchain.",
+        "requestBody": {
+          "description": "Cancellation token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTestResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
@@ -321,6 +457,222 @@
           }
         }
       }
+    },
+    "/api/internal/student": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Add a new student.",
+        "requestBody": {
+          "description": "Student payload.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddStudentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/internal/students": {
+      "get": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Get all students.",
+        "responses": {
+          "200": {
+            "description": "200 OK with list of all students.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/internal/test-results/verify": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Verifies that test result data matches the stored blockchain hash.",
+        "requestBody": {
+          "description": "Cancellation token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyTestResultRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyTestResultResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/internal/test-results/my": {
+      "get": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Gets all test results for the authenticated user.",
+        "responses": {
+          "200": {
+            "description": "200 OK with list of test results, or empty list if user has no linked student.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestResultWithTestResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/internal/test-results/share": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Creates a shareable code for a test result.",
+        "requestBody": {
+          "description": "Cancellation token.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShareCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareCodeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/internal/test-results/shared/{code}": {
+      "get": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Retrieves a shared test result by share code. This endpoint is publicly accessible.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "The share code.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedTestResultResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/internal/test-results/share/{code}": {
+      "delete": {
+        "tags": [
+          "Internal"
+        ],
+        "summary": "Revokes a share code so it can no longer be used.",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "The share code to revoke.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -329,29 +681,26 @@
         "required": [
           "blockId",
           "institutionId",
-          "institutionName",
-          "signatures"
+          "institutionName"
         ],
         "type": "object",
         "properties": {
           "blockId": {
             "type": "string",
+            "description": "Id of the new block",
             "format": "uuid"
           },
           "institutionId": {
             "type": "string",
+            "description": "Id of the institution",
             "format": "uuid"
           },
           "institutionName": {
-            "type": "string"
-          },
-          "signatures": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SignedByInstitution"
-            }
+            "type": "string",
+            "description": "Name of the institution"
           }
-        }
+        },
+        "description": "Request for proposing a new institution block."
       },
       "AddInstitutionRequest": {
         "required": [
@@ -381,6 +730,36 @@
           }
         },
         "description": "Request for adding an institution."
+      },
+      "AddStudentRequest": {
+        "required": [
+          "id",
+          "name",
+          "surname"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id of the student",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Name of the student"
+          },
+          "surname": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Surname of the student"
+          }
+        },
+        "description": "Request for adding a student."
       },
       "AddTestBlockRequest": {
         "required": [
@@ -421,6 +800,45 @@
             }
           }
         }
+      },
+      "AddTestRequest": {
+        "required": [
+          "blockId",
+          "testId",
+          "institutionId",
+          "maxScore",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "description": "Id of the new block",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "description": "Id of the test",
+            "format": "uuid"
+          },
+          "institutionId": {
+            "type": "string",
+            "description": "Id of the institution",
+            "format": "uuid"
+          },
+          "maxScore": {
+            "type": "string",
+            "description": "Maximum score for the test"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Name of the test"
+          }
+        },
+        "description": "Request for proposing a new test block."
       },
       "AddTestResultBlockRequest": {
         "required": [
@@ -464,6 +882,49 @@
             }
           }
         }
+      },
+      "AddTestResultRequest": {
+        "required": [
+          "blockId",
+          "testResultId",
+          "testId",
+          "studentId",
+          "score",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "blockId": {
+            "type": "string",
+            "description": "Id of the new block",
+            "format": "uuid"
+          },
+          "testResultId": {
+            "type": "string",
+            "description": "Id of the test result",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "description": "Id of the test",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "Id of the student",
+            "format": "uuid"
+          },
+          "score": {
+            "description": "Score as a JSON document",
+            "$ref": "#/components/schemas/JsonDocument"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Timestamp of the test result",
+            "format": "date-time"
+          }
+        },
+        "description": "Request for proposing a new test result block."
       },
       "AssignRoleRequest": {
         "required": [
@@ -624,6 +1085,61 @@
         },
         "description": "Represents a block in the blockchain containing immutable, signed data."
       },
+      "BlockResponse": {
+        "required": [
+          "id",
+          "type",
+          "prevId",
+          "prevHashHex",
+          "hashHex",
+          "institutionId",
+          "signedHashHex",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the block",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "description": "The semantic type of the block"
+          },
+          "prevId": {
+            "type": "string",
+            "description": "Identifier of the previous block",
+            "format": "uuid"
+          },
+          "prevHashHex": {
+            "type": "string",
+            "description": "Hash of the previous block (hex-encoded)"
+          },
+          "hashHex": {
+            "type": "string",
+            "description": "Hash of the current block (hex-encoded)"
+          },
+          "institutionId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Identifier of the institution that created and signed the block",
+            "format": "uuid"
+          },
+          "signedHashHex": {
+            "type": "string",
+            "description": "Signed block hash (hex-encoded)"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "UTC timestamp when the block was created",
+            "format": "date-time"
+          }
+        },
+        "description": "Response DTO for a blockchain block."
+      },
       "BlockType": {
         "enum": [
           "FirstBlock",
@@ -632,6 +1148,26 @@
           "TestResult"
         ],
         "description": "Defines the semantic category of a blockchain BlockEntity."
+      },
+      "CreateShareCodeRequest": {
+        "required": [
+          "testResultId",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "testResultId": {
+            "type": "string",
+            "description": "ID of the test result to share",
+            "format": "uuid"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "When the share code should expire",
+            "format": "date-time"
+          }
+        },
+        "description": "Request for creating a share code for a test result."
       },
       "InstitutionEntity": {
         "required": [
@@ -746,9 +1282,92 @@
             "minLength": 6,
             "type": "string",
             "description": "Password for the user account."
+          },
+          "studentId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional student ID to link this user to an existing student record.",
+            "format": "uuid"
           }
         },
         "description": "Request model for user registration."
+      },
+      "ShareCodeResponse": {
+        "required": [
+          "code",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "The generated share code"
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "When the share code expires",
+            "format": "date-time"
+          }
+        },
+        "description": "Response for creating a share code."
+      },
+      "SharedTestResultResponse": {
+        "required": [
+          "testResultId",
+          "testId",
+          "studentId",
+          "score",
+          "timestamp",
+          "testName",
+          "institutionId",
+          "blockHash"
+        ],
+        "type": "object",
+        "properties": {
+          "testResultId": {
+            "type": "string",
+            "description": "ID of the test result",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "description": "ID of the test",
+            "format": "uuid"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "ID of the student",
+            "format": "uuid"
+          },
+          "score": {
+            "description": "Score achieved",
+            "$ref": "#/components/schemas/JsonDocument"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "When the result was recorded",
+            "format": "date-time"
+          },
+          "testName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Name of the test (if available)"
+          },
+          "institutionId": {
+            "type": "string",
+            "description": "ID of the institution",
+            "format": "uuid"
+          },
+          "blockHash": {
+            "type": "string",
+            "description": "Hash of the block containing this result (hex-encoded)"
+          }
+        },
+        "description": "Response for retrieving a shared test result."
       },
       "SignedByInstitution": {
         "required": [
@@ -797,6 +1416,36 @@
           }
         },
         "description": "Represents a student/subject whose language proficiency test results are recorded."
+      },
+      "StudentResponse": {
+        "required": [
+          "id",
+          "name",
+          "surname"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the student",
+            "format": "uuid"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional name of the student"
+          },
+          "surname": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Optional surname of the student"
+          }
+        },
+        "description": "Response DTO for a student."
       },
       "TestEntity": {
         "required": [
@@ -877,7 +1526,7 @@
             "format": "uuid"
           },
           "score": {
-            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\r\nOptional; may be null if the score is not disclosed.",
+            "description": "The score or grade awarded for the test. Kept as a string to support formats such as \"85\", \"C1\", \"7.5\", etc.\nOptional; may be null if the score is not disclosed.",
             "$ref": "#/components/schemas/JsonDocument"
           },
           "timestamp": {
@@ -903,9 +1552,126 @@
         },
         "description": "Represents a single language proficiency test result that is stored on-chain."
       },
+      "TestResultWithTestResponse": {
+        "required": [
+          "testResultId",
+          "testId",
+          "testName",
+          "testMaxScore",
+          "institutionId",
+          "score",
+          "timestamp",
+          "blockHash",
+          "prevBlockHash"
+        ],
+        "type": "object",
+        "properties": {
+          "testResultId": {
+            "type": "string",
+            "description": "ID of the test result",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "description": "ID of the test",
+            "format": "uuid"
+          },
+          "testName": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "description": "Name of the test (if available)"
+          },
+          "testMaxScore": {
+            "type": "string",
+            "description": "Maximum score for the test"
+          },
+          "institutionId": {
+            "type": "string",
+            "description": "ID of the institution",
+            "format": "uuid"
+          },
+          "score": {
+            "description": "Score achieved",
+            "$ref": "#/components/schemas/JsonDocument"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "When the result was recorded",
+            "format": "date-time"
+          },
+          "blockHash": {
+            "type": "string",
+            "description": "Hash of the block containing this result (hex-encoded)"
+          },
+          "prevBlockHash": {
+            "type": "string",
+            "description": "Hash of the previous block (hex-encoded)"
+          }
+        },
+        "description": "Response for a single test result with test details."
+      },
       "UserRole": {
-        "type": "integer",
+        "enum": [
+          "Student",
+          "Verificator",
+          "Operator"
+        ],
         "description": "Enumeration of user roles in the system."
+      },
+      "VerifyTestResultRequest": {
+        "required": [
+          "testResultId",
+          "testId",
+          "score",
+          "prevHashHex"
+        ],
+        "type": "object",
+        "properties": {
+          "testResultId": {
+            "type": "string",
+            "description": "ID of the test result to verify",
+            "format": "uuid"
+          },
+          "testId": {
+            "type": "string",
+            "description": "ID of the test",
+            "format": "uuid"
+          },
+          "score": {
+            "description": "Score achieved in the test",
+            "$ref": "#/components/schemas/JsonDocument"
+          },
+          "prevHashHex": {
+            "type": "string",
+            "description": "Hash of the previous block (hex-encoded)"
+          }
+        },
+        "description": "Request for verifying test result data against stored hash."
+      },
+      "VerifyTestResultResponse": {
+        "required": [
+          "isValid",
+          "storedHash",
+          "computedHash"
+        ],
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean",
+            "description": "Whether the provided data matches the stored hash"
+          },
+          "storedHash": {
+            "type": "string",
+            "description": "The hash stored in the blockchain (hex-encoded)"
+          },
+          "computedHash": {
+            "type": "string",
+            "description": "The hash computed from provided data (hex-encoded)"
+          }
+        },
+        "description": "Response for verifying test result data."
       }
     }
   },

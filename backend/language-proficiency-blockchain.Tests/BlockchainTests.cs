@@ -157,26 +157,25 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
     public async Task AddBlock_fails_when_quorum_not_met()
     {
         using var scope = Factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var svc = scope.ServiceProvider.GetRequiredService<BlockchainService>();
+        var crypto = scope.ServiceProvider.GetRequiredService<ICryptoService>();
 
-        var instA = await CreateInstitutionAsync(scope.ServiceProvider, "inst-A");
-        var instB = await CreateInstitutionAsync(scope.ServiceProvider, "inst-B");
-        await CreateInstitutionAsync(scope.ServiceProvider, "inst-C");
+        var instA = await CreateInstitutionWithBlockAsync(scope.ServiceProvider, "inst-A", crypto);
+        var instB = await CreateInstitutionWithBlockAsync(scope.ServiceProvider, "inst-B", crypto);
+        await CreateInstitutionWithBlockAsync(scope.ServiceProvider, "inst-C", crypto);
 
-        var (_, prevHash) = await GetTailAsync(db);
-        var hashable = new HashableTestV1(prevHash, instA, Guid.NewGuid(), "100");
-        var hash = Hasher.HashBlock(hashable);
+        var testId = Guid.NewGuid();
+        var validateHashable = new HashableTestV1([], instA, testId, "100");
+        var validateHash = Hasher.HashBlock(validateHashable);
 
         // quorum for 3 institutions is 2; provide only one valid signature
         var signatures = new[]
         {
-            new BlockchainService.BlockSignature(instB,
-                fixture.PrivateKey.SignData(hash, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
+            new BlockchainService.BlockSignature(instB, crypto.SignHash(validateHash))
         };
 
         await Assert.That(() =>
-                svc.AddTestBlockAsync(Guid.NewGuid(), Guid.NewGuid(), instA, "100", "Lang Test", signatures)!)
+                svc.AddTestBlockAsync(Guid.NewGuid(), testId, instA, "100", "Lang Test", signatures)!)
             .Throws<InvalidOperationException>();
     }
 
@@ -235,6 +234,37 @@ internal class BlockchainTests(RsaKeyFixture fixture) : BaseIntegrationTest
         var pem = ToPem(fixture.PublicKey.ExportSubjectPublicKeyInfo());
         await internalService.AddInstitution(id, address, address, pem);
         return id;
+    }
+
+    private async Task<Guid> CreateInstitutionWithBlockAsync(IServiceProvider services, string address, ICryptoService crypto)
+    {
+        var instId = await CreateInstitutionAsync(services, address);
+        var svc = services.GetRequiredService<BlockchainService>();
+        var db = services.GetRequiredService<AppDbContext>();
+
+        var validateHashable = new HashableInstitutionV1([], instId, address);
+        var validateHash = Hasher.HashBlock(validateHashable);
+        
+        // Find an existing institution with a block to sign for us
+        var existingInstitution = await db.Institutions
+            .AsNoTracking()
+            .Where(i => i.BlockId != null)
+            .FirstOrDefaultAsync();
+
+        BlockchainService.BlockSignature[] signatures;
+        if (existingInstitution != null)
+        {
+            // Sign with the existing institution's key (which is the same test key)
+            signatures = [new BlockchainService.BlockSignature(existingInstitution.Id, crypto.SignHash(validateHash))];
+        }
+        else
+        {
+            // Bootstrap case: no institutions with blocks yet, quorum = 0
+            signatures = [];
+        }
+
+        await svc.AddInstitutionBlockAsync(Guid.NewGuid(), instId, address, signatures);
+        return instId;
     }
     
     private static string ToPem(byte[] subjectPublicKeyInfo)

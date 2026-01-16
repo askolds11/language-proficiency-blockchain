@@ -2,7 +2,9 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
+using language_proficiency_blockchain.HashModels;
 using language_proficiency_blockchain.HashModels.Interfaces;
+using language_proficiency_blockchain.HashModels.v1;
 using language_proficiency_blockchain.requests.Blockchain;
 using language_proficiency_blockchain.services;
 using Microsoft.EntityFrameworkCore;
@@ -99,6 +101,31 @@ internal class InternalServiceProposalTests(RsaKeyFixture rsaKeyFixture) : BaseI
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         var institutionId = Guid.NewGuid();
+        var existingInstId = Guid.NewGuid();
+        var existingBlockId = Guid.NewGuid();
+
+        var firstBlock = await db.Blocks.FirstAsync();
+
+        // Add an existing institution with a block so quorum > 0
+        db.Blocks.Add(new BlockEntity
+        {
+            Id = existingBlockId,
+            Type = BlockType.Institution,
+            PrevId = firstBlock.Id,
+            PrevHash = firstBlock.Hash,
+            Hash = [1, 2, 3],
+            InstitutionId = null,
+            SignedHash = [],
+            Timestamp = DateTimeOffset.UtcNow
+        });
+
+        db.Institutions.Add(new InstitutionEntity
+        {
+            Id = existingInstId,
+            BlockId = existingBlockId,
+            Address = "http://existing.com",
+            PublicKeyPem = []
+        });
 
         db.Institutions.Add(new InstitutionEntity
         {
@@ -432,13 +459,14 @@ internal class InternalServiceProposalTests(RsaKeyFixture rsaKeyFixture) : BaseI
         var blockId = Guid.NewGuid();
         var testResultId = Guid.NewGuid();
         var timestamp = DateTimeOffset.UtcNow;
+        var document = JsonSerializer.SerializeToDocument(new { listening = 70, speaking = 80 });
 
         var result = await service.ProposeTestResultBlockAsync(
             blockId,
             testResultId,
             testId,
             studentId,
-            JsonSerializer.SerializeToDocument(new {listening = 70, speaking = 80}),
+            document,
             timestamp,
             CancellationToken.None);
 
@@ -450,7 +478,7 @@ internal class InternalServiceProposalTests(RsaKeyFixture rsaKeyFixture) : BaseI
         var testResult = await db.TestResults.FindAsync(testResultId);
         await Assert.That(testResult).IsNotNull();
         await Assert.That(testResult!.BlockId).IsEqualTo(result.Id);
-        await Assert.That(testResult.Score).IsEqualTo(JsonSerializer.SerializeToDocument(new {listening = 70, speaking = 80}));
+        await Assert.That(testResult.Score.RootElement.GetRawText()).IsEqualTo(document.RootElement.GetRawText());
         await Assert.That(testResult.StudentId).IsEqualTo(studentId);
 
         // Verify broadcast

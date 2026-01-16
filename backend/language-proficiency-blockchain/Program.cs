@@ -30,6 +30,11 @@ builder.Services
     .Bind(builder.Configuration.GetSection(AuthenticationOptions.Authentication))
     .ValidateDataAnnotations();
 
+builder.Services
+    .AddOptions<NodeOptions>()
+    .Bind(builder.Configuration.GetSection("Node"))
+    .ValidateDataAnnotations();
+
 builder.Services.AddSingleton<IOptionsMonitor<RsaKeyHolder>, RsaKeyMonitor>();
 builder.Services.AddSingleton<ICryptoService, CryptoService>();
 builder.Services.AddScoped<BlockchainService>();

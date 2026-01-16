@@ -1,13 +1,11 @@
 using System.Collections.Concurrent;
-using System.Net;
-using System.Net.Http.Json;
 using language_proficiency_blockchain.Database;
 using language_proficiency_blockchain.Database.Models;
 using language_proficiency_blockchain.HashModels.Interfaces;
 using language_proficiency_blockchain.HashModels.v1;
+using language_proficiency_blockchain.Options;
 using language_proficiency_blockchain.responses.Blockchain;
 using language_proficiency_blockchain.services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 
@@ -36,7 +34,10 @@ internal class NodeRepositoryTests : BaseIntegrationTest
             .Returns(Task.FromResult<ProposeBlockResponse?>(
                 new ProposeBlockResponse(Convert.ToBase64String(signedHashBytes))));
 
-        var repository = new NodeRepository(mockHttpClient, db);
+        var mockCryptoService = Substitute.For<ICryptoService>();
+        var nodeOptions = Microsoft.Extensions.Options.Options.Create(new NodeOptions { Address = "http://local:5000" });
+
+        var repository = new NodeRepository(mockHttpClient, db, mockCryptoService, nodeOptions);
 
         // Create institutions with blocks
         var instId = Guid.NewGuid();
@@ -104,7 +105,10 @@ internal class NodeRepositoryTests : BaseIntegrationTest
                     new ProposeBlockResponse(Convert.ToBase64String([1, 2, 3])));
             });
 
-        var repository = new NodeRepository(mockHttpClient, db);
+        var mockCryptoService = Substitute.For<ICryptoService>();
+        var nodeOptions = Microsoft.Extensions.Options.Options.Create(new NodeOptions { Address = "http://local:5000" });
+
+        var repository = new NodeRepository(mockHttpClient, db, mockCryptoService, nodeOptions);
 
         // Create multiple institutions
         for (var i = 0; i < 3; i++)
@@ -183,7 +187,10 @@ internal class NodeRepositoryTests : BaseIntegrationTest
                         new ProposeBlockResponse(Convert.ToBase64String([1, 2, 3])));
             });
 
-        var repository = new NodeRepository(mockHttpClient, db);
+        var mockCryptoService = Substitute.For<ICryptoService>();
+        var nodeOptions = Microsoft.Extensions.Options.Options.Create(new NodeOptions { Address = "http://local:5000" });
+
+        var repository = new NodeRepository(mockHttpClient, db, mockCryptoService, nodeOptions);
 
         // Create two institutions
         for (var i = 0; i < 2; i++)
@@ -253,7 +260,10 @@ internal class NodeRepositoryTests : BaseIntegrationTest
                     new ProposeBlockResponse(Convert.ToBase64String([1, 2, 3])));
             });
 
-        var repository = new NodeRepository(mockHttpClient, db);
+        var mockCryptoService = Substitute.For<ICryptoService>();
+        var nodeOptions = Microsoft.Extensions.Options.Options.Create(new NodeOptions { Address = "http://local:5000" });
+
+        var repository = new NodeRepository(mockHttpClient, db, mockCryptoService, nodeOptions);
 
         // Create one institution with block, one without
         var blockId = Guid.NewGuid();
@@ -324,7 +334,10 @@ internal class NodeRepositoryTests : BaseIntegrationTest
                 Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(true));
 
-        var repository = new NodeRepository(mockHttpClient, db);
+        var mockCryptoService = Substitute.For<ICryptoService>();
+        var nodeOptions = Microsoft.Extensions.Options.Options.Create(new NodeOptions { Address = "http://local:5000" });
+
+        var repository = new NodeRepository(mockHttpClient, db, mockCryptoService, nodeOptions);
 
         // Create institutions
         for (var i = 0; i < 3; i++)
