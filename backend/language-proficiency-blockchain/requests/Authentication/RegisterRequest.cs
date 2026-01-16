@@ -20,4 +20,9 @@ public class RegisterRequest
     [Required]
     [MinLength(6)]
     public required string Password { get; init; }
+
+    /// <summary>
+    /// Optional student ID to link this user to an existing student record.
+    /// </summary>
+    public Guid? StudentId { get; init; }
 }

@@ -17,10 +17,11 @@ public interface IAuthenticationService
     /// </summary>
     /// <param name="email">User email address.</param>
     /// <param name="password">User password.</param>
+    /// <param name="studentId">Optional student ID to link to.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created user entity.</returns>
     /// <exception cref="InvalidOperationException">If user with email already exists.</exception>
-    Task<UserEntity> RegisterAsync(string email, string password, CancellationToken ct);
+    Task<UserEntity> RegisterAsync(string email, string password, Guid? studentId, CancellationToken ct);
 
     /// <summary>
     /// Authenticates a user with the provided email and password.
@@ -61,11 +62,27 @@ internal class AuthenticationService(
     private readonly Microsoft.AspNetCore.Identity.IPasswordHasher<UserEntity> _passwordHasher = passwordHasher;
     private readonly language_proficiency_blockchain.Database.AppDbContext _dbContext = dbContext;
 
-    public async Task<UserEntity> RegisterAsync(string email, string password, CancellationToken ct)
+    public async Task<UserEntity> RegisterAsync(string email, string password, Guid? studentId, CancellationToken ct)
     {
         if (await _dbContext.Users.AnyAsync(u => u.Email == email, ct))
         {
             throw new InvalidOperationException($"User with email '{email}' already exists.");
+        }
+
+        // Validate studentId if provided
+        if (studentId != null)
+        {
+            var studentExists = await _dbContext.Students.AnyAsync(s => s.Id == studentId.Value, ct);
+            if (!studentExists)
+            {
+                _dbContext.Students.Add(new StudentEntity { Id = studentId.Value, Name = null, Surname = null });
+            }
+
+            var studentAlreadyLinked = await _dbContext.Users.AnyAsync(u => u.StudentId == studentId.Value, ct);
+            if (studentAlreadyLinked)
+            {
+                throw new InvalidOperationException($"Student with ID '{studentId}' is already linked to another user.");
+            }
         }
 
         var user = new UserEntity
@@ -73,6 +90,7 @@ internal class AuthenticationService(
             Id = Guid.NewGuid(),
             Email = email,
             PasswordHash = string.Empty,
+            StudentId = studentId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -85,6 +103,7 @@ internal class AuthenticationService(
             Id = user.Id,
             Email = user.Email,
             PasswordHash = hashedPassword,
+            StudentId = studentId,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };

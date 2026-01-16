@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using language_proficiency_blockchain.Database;
@@ -12,9 +13,11 @@ using language_proficiency_blockchain.Database;
 namespace language_proficiency_blockchain.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260116150157_AddShareCodes")]
+    partial class AddShareCodes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -242,18 +245,12 @@ namespace language_proficiency_blockchain.Database.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<Guid?>("StudentId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("StudentId")
                         .IsUnique();
 
                     b.ToTable("Users");
@@ -363,16 +360,6 @@ namespace language_proficiency_blockchain.Database.Migrations
                     b.Navigation("Student");
 
                     b.Navigation("TestEntity");
-                });
-
-            modelBuilder.Entity("language_proficiency_blockchain.Database.Models.UserEntity", b =>
-                {
-                    b.HasOne("language_proficiency_blockchain.Database.Models.StudentEntity", "Student")
-                        .WithOne()
-                        .HasForeignKey("language_proficiency_blockchain.Database.Models.UserEntity", "StudentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("language_proficiency_blockchain.Database.Models.UserRoleAssociation", b =>
