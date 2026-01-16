@@ -27,6 +27,15 @@ public class InternalEndpoints : IEndpoint
         group.MapPost("institution", AddInstitution)
             .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
 
+        group.MapPost("ping", Ping)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.Everyone);
+            
+        group.MapPost("test", AddTest)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.OperatorOnly);
+
+        group.MapPost("test-result", AddTestResult)
+            .RequireAuthorization(language_proficiency_blockchain.Authorization.AuthorizationPolicies.VerificatorOrOperator);
+
         group.MapGet("ping", Ping)
             .AllowAnonymous();
 
@@ -101,6 +110,73 @@ public class InternalEndpoints : IEndpoint
     {
         return TypedResults.Ok();
     }
+
+    /// <summary>
+    /// Proposes a new test block to the blockchain.
+    /// </summary>
+    /// <param name="internalService">Internal service.</param>
+    /// <param name="req">Test payload.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>
+    /// 200 OK with the created block if successful.
+    /// 400 BadRequest if operation fails.
+    /// </returns>
+    internal static async Task<Results<Ok<BlockEntity>, BadRequest<string>>> AddTest(
+        [FromServices] InternalService internalService,
+        [FromBody] AddTestRequest req,
+        CancellationToken ct)
+    {
+        try
+        {
+            var block = await internalService.ProposeTestBlockAsync(
+                req.BlockId,
+                req.TestId,
+                req.InstitutionId,
+                req.MaxScore,
+                req.Name,
+                ct);
+
+            return TypedResults.Ok(block);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return TypedResults.BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Proposes a new test result block to the blockchain.
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>
+    /// 200 OK with the created block if successful.
+    /// 400 BadRequest if operation fails.
+    /// </returns>
+    internal static async Task<Results<Ok<BlockEntity>, BadRequest<string>>> AddTestResult(
+        [FromServices] InternalService internalService,
+        [FromBody] AddTestResultRequest req,
+        CancellationToken ct)
+    {
+        try
+        {
+            var block = await internalService.ProposeTestResultBlockAsync(
+                req.BlockId,
+                req.TestResultId,
+                req.TestId,
+                req.StudentId,
+                req.Score,
+                req.Timestamp,
+                ct);
+
+            return TypedResults.Ok(block);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return TypedResults.BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 
 
     /// <summary>
     /// Assigns a role to a user.
