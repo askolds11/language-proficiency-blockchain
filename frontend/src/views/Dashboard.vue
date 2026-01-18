@@ -83,8 +83,9 @@ onMounted(async () => {
   <div>
     <div class="lx-dashboard" width="m" height="s">
       <LxTile v-if="authStore.session.roles === 'Student'" icon="registry" :label="'Tests'" description="Language test result list" :to="{ name: 'results' }"/>
-      <LxTile v-if="authStore.session.roles === 'Verificator'" icon="add" :label="'Add test'" description="Language test input" :to="{ name: 'operatorResultDetails' }"/>
-      <LxTile v-if="authStore.session.roles === 'Student'" icon="share" :label="'Share results'" description="Language test sharing" :to="{ name: 'share' }"/>
+      <LxTile v-if="authStore.session.roles === 'Student'" icon="block" :label="'Revoke viewing'" description="Rewoke test result viewing by code" :to="{ name: 'revoke' }"/>
+      <LxTile v-if="authStore.session.roles === 'Operator'" icon="add" :label="'Add test'" description="Language test input" :to="{ name: 'operatorResultDetails' }"/>
+      <LxTile v-if="authStore.session.roles === 'Verificator'" icon="classifier" :label="'View results'" description="Language test results by code" :to="{ name: 'share' }"/>
     </div>
   </div>
 </template>

@@ -29,7 +29,7 @@ const routes = [
         component: () => import('@/views/Results.vue'),
       },
       {
-        path: '/result-details',
+        path: '/result-details/:entityId',
         name: 'resultDetails',
         meta: {
           title: 'Test list',
@@ -46,13 +46,22 @@ const routes = [
       {
         path: '/operator-result-details',
         name: 'operatorResultDetails',
+        meta: {
+          title: 'Result input',
+          breadcrumbs: [
+            {
+              text: 'Dashboard',
+              to: { name: 'dashboard' },
+            },
+          ],
+        },
         component: () => import('@/views/OperatorResultDetails.vue'),
       },
       {
         path: '/share',
         name: 'share',
         meta: {
-          title: 'Share results',
+          title: 'Results by code',
           anonymous: true,
           breadcrumbs: [
             {
@@ -62,6 +71,21 @@ const routes = [
           ],
         },
         component: () => import('@/views/ShareDetails.vue'),
+      },
+      {
+        path: '/revoke',
+        name: 'revoke',
+        meta: {
+          title: 'Revoke code',
+          anonymous: true,
+          breadcrumbs: [
+            {
+              text: 'Dashboard',
+              to: { name: 'dashboard' },
+            },
+          ],
+        },
+        component: () => import('@/views/RevokeDetails.vue'),
       },
       {
         path: '/authorization',

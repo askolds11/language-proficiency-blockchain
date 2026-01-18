@@ -79,7 +79,7 @@ const nav = computed(() => {
     icon: 'dashboard',
     to: { name: 'dashboard' },
   })
-  if (authStore.session.roles !== 'Operator') {
+  if (authStore.session.roles === 'Student' ) {
     items.push({
     label: 'Results',
     to: { name: 'results' },
@@ -87,14 +87,20 @@ const nav = computed(() => {
   }
   if (authStore.session.roles === 'Operator') {
     items.push({
-    label: 'Results',
+    label: 'Add test',
     to: { name: 'operatorResultDetails' },
+  })
+  }
+  if (authStore.session.roles === 'Verificator') {
+    items.push({
+    label: 'Results by code',
+    to: { name: 'share' },
   })
   }
   if (authStore.session.roles === 'Student') {
     items.push({
-    label: 'Share',
-    to: { name: 'share' },
+    label: 'Revoke viewing',
+    to: { name: 'revoke' },
   })
   }
   return items;

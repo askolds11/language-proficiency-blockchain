@@ -9,9 +9,11 @@ import {
 } from '@wntr/lx-ui';
 import useAuthStore from '@/stores/useAuthStore';
 import { useRouter } from 'vue-router';
+import useNotifyStore from '@/stores/useNotifyStore';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const notifications = useNotifyStore();
 
 const testData = ref({
     key: null,
@@ -53,10 +55,38 @@ function nullAllExcept(obj) {
 }
 
 
-function buttonClicked(actionId){
+async function buttonClicked(actionId){
 if (actionId === 'save') {
   if (validate()) {
     //TODO Save call
+
+    const localDate = new Date(testData.value.dateOfExamination);
+    let randomId = crypto.randomUUID();
+    const resp = await fetch("http://localhost:5001/api/internal/test-result", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${authStore.session.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        blockId: randomId,
+        testResultId: randomId,
+        testId: testData.value.type,
+        studentId: testData.value.key,
+        score: "123",
+        timestamp: localDate.toISOString()
+      })
+    });
+
+    if (resp.ok) {
+      console.log("Request succeeded!");
+      notifications.pushSuccess("Result saved!");
+      router.push({ name: 'dashboard' });
+    } else {
+      console.log("Request failed with code:", resp.status);
+      notifications.pushError("Internal server error.");
+    }
+
   }
 } else if (actionId === 'cancel') {
   nullAllExcept(testData);
@@ -65,11 +95,11 @@ if (actionId === 'save') {
 
 const testTypes = [
     {
-        id:'IELTS',
+        id:'019bcd60-fa47-7d29-a7d0-df4b7f43cfef',
         name:'IELTS',
     },
     {
-        id:'TOEFL',
+        id:'019bcd9d-ca1b-74f9-8a9c-d71c8b3a0565',
         name:'TOEFL',
     },
 ]
@@ -81,37 +111,37 @@ function validate(){
     invalidFields.value = {};
     let isValid = true;
 
-    if (!testData.key) {
+    if (!testData.value.key) {
       invalidFields.value.key = 'Mandatory';
       isValid = false;
     }
 
-    if (!testData.type) {
+    if (!testData.value.type) {
       invalidFields.value.type = 'Mandatory';
       isValid = false;
     }
 
-    if (!testData.readingScore) {
+    if (!testData.value.readingScore) {
       invalidFields.value.readingScore = 'Mandatory';
       isValid = false;
     }
 
-    if (!testData.writtingScore) {
+    if (!testData.value.writtingScore) {
       invalidFields.value.writtingScore = 'Mandatory';
       isValid = false;
     }
 
-    if (!testData.speakingScore) {
+    if (!testData.value.speakingScore) {
       invalidFields.value.speakingScore = 'Mandatory';
       isValid = false;
     }
 
-    if (!testData.listeningScore) {
+    if (!testData.value.listeningScore) {
       invalidFields.value.listeningScore = 'Mandatory';
       isValid = false;
     }
 
-    if (!testData.dateOfExamination) {
+    if (!testData.value.dateOfExamination) {
       invalidFields.value.dateOfExamination = 'Mandatory';
       isValid = false;
     }
@@ -152,12 +182,54 @@ const finalResult = computed(() => {
     }
 });
 
+const students = ref([]);
 
+function toDateTimeOffset(date = new Date()) {
+  const pad = (n) => String(n).padStart(2, "0");
+
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  const offsetMinutes = -date.getTimezoneOffset();
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const offsetHours = pad(Math.floor(Math.abs(offsetMinutes) / 60));
+  const offsetMins = pad(Math.abs(offsetMinutes) % 60);
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`;
+}
+
+const maxDate = ref('')
 
 onMounted(async () => {
+
+const resp = await fetch("http://localhost:5001/api/internal/students", {
+  method: "GET",
+  headers: {
+    Authorization: `Bearer ${authStore.session.token}`,
+  },
+});
+
+const data = await resp.json();
+
+
+
+data.forEach(item => {
+  students.value.push({
+    id: item.id,
+    name: `${item.id} - ${item.name} ${item.surname}`,
+  });
+});
+
 testData.value.type = testTypes[0].id;
-    // TODO: Lomas pārbaude
-// TODO: Ja ir kāds, kas skatās rezultātus, tad šeit notiek datu ielāde
+
+maxDate.value = toDateTimeOffset()
+
+
 });
 
 </script>
@@ -170,10 +242,11 @@ testData.value.type = testTypes[0].id;
       :action-definitions="actionDefinitions"
       @buttonClick="buttonClicked"
     >
-        <LxRow label="Key">
-            <LxTextInput 
+        <LxRow label="Name">
+            <LxValuePicker 
             v-model="testData.key"
-            :mask="mask"
+            :items="students"
+            :variant="'dropdown'"
             :read-only="false"
             :invalid="invalidFields.key"
             :invalidationMessage="invalidFields.key"
@@ -239,6 +312,7 @@ testData.value.type = testTypes[0].id;
             <LxDateTimePicker
               v-model="testData.dateOfExamination"
               :mask="mask"
+              :maxDate="maxDate"
               :read-only="false"
               :invalid="invalidFields.dateOfExamination"
               :invalidationMessage="invalidFields.dateOfExamination"
