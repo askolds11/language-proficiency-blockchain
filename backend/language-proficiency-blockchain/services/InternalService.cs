@@ -327,7 +327,8 @@ internal class InternalService(
             Timestamp: testResult.Timestamp,
             TestName: testResult.TestEntity.Name,
             InstitutionId: testResult.TestEntity.InstitutionId,
-            BlockHash: Convert.ToHexString(block.Hash).ToLowerInvariant()
+            BlockHash: Convert.ToHexString(block.Hash).ToLowerInvariant(),
+            PrevBlockHash: Convert.ToHexString(block.PrevHash).ToLowerInvariant()
         );
     }
 

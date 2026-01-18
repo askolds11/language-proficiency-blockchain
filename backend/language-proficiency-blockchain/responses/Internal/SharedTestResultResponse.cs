@@ -23,6 +23,7 @@ public sealed record SharedTestResultResponse(
     DateTimeOffset Timestamp,
     string? TestName,
     Guid InstitutionId,
-    string BlockHash
+    string BlockHash,
+    string PrevBlockHash
 );
 
