@@ -1322,7 +1322,8 @@
           "timestamp",
           "testName",
           "institutionId",
-          "blockHash"
+          "blockHash",
+          "prevBlockHash"
         ],
         "type": "object",
         "properties": {
@@ -1365,6 +1366,9 @@
           "blockHash": {
             "type": "string",
             "description": "Hash of the block containing this result (hex-encoded)"
+          },
+          "prevBlockHash": {
+            "type": "string"
           }
         },
         "description": "Response for retrieving a shared test result."
