@@ -73,7 +73,7 @@ if (actionId === 'save') {
         testResultId: randomId,
         testId: testData.value.type,
         studentId: testData.value.key,
-        score: "123",
+        score: [Number(testData.value.readingScore), Number(testData.value.writtingScore), Number(testData.value.speakingScore), Number(testData.value.listeningScore)],
         timestamp: localDate.toISOString()
       })
     });
@@ -157,10 +157,11 @@ if (testData.value.type === 'IELTS') {
 });
 
 function calculateIELTS(listening, reading, writing, speaking) {
+
   const average = (listening + reading + writing + speaking) / 4;
 
-  // Round to nearest 0.5
-  return Math.round(average * 2) / 2;
+  const result = Math.round(average * 2) / 2;
+  return result.toString();
 }
 
 function calculateTOEFL(reading, listening, speaking, writing) {
@@ -171,11 +172,12 @@ function calculateTOEFL(reading, listening, speaking, writing) {
 }
 
 const finalResult = computed(() => {
+  console.log(testData.value)
     if (testData.value.writtingScore && testData.value.listeningScore && testData.value.readingScore && testData.value.speakingScore) {
-        if (testData.value.type === 'IELTS') {
-            calculateIELTS(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
+        if (testData.value.type === '019bcd60-fa47-7d29-a7d0-df4b7f43cfef') {
+            return calculateIELTS(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
         } else {
-            calculateTOEFL(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
+            return calculateTOEFL(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
         }
     } else {
         return '-';
@@ -302,7 +304,6 @@ maxDate.value = toDateTimeOffset()
         <LxRow label="Total score">
             <LxTextInput 
               v-model="finalResult"
-              :mask="mask"
               :invalid="invalidFields.totalScore"
               :invalidationMessage="invalidFields.totalScore"
               :read-only="true"

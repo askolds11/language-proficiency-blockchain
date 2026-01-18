@@ -89,7 +89,19 @@ async function getResults(){
       testData.value = data;
 
       selectedStudent.value = students.value.find((obj)=>obj.id===testData.value.studentId);
-      testData.value.name = `${selectedStudent.value.name} ${selectedStudent.value.surname}`
+      testData.value.name = `${selectedStudent.value.name} ${selectedStudent.value.surname}`;
+
+      testData.value.readingScore = testData.value.score[0];
+testData.value.writtingScore = testData.value.score[1];
+testData.value.speakingScore = testData.value.score[2];
+testData.value.listeningScore = testData.value.score[3];
+
+if(testData.value.testName === 'IELTS'){
+  finalResult.value = calculateIELTS(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+} else {
+  finalResult.value = calculateTOEFL(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+}
+
 
     } else {
       console.log("Request failed with code:", resp.status);
@@ -122,17 +134,7 @@ function calculateTOEFL(reading, listening, speaking, writing) {
   return Math.round(total).toString();
 }
 
-const finalResult = computed(() => {
-    if (testData.value.writtingScore && testData.value.listeningScore && testData.value.readingScore && testData.value.speakingScore) {
-        if (testData.value.type === 'IELTS') {
-            calculateIELTS(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
-        } else {
-            calculateTOEFL(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
-        }
-    } else {
-        return '-';
-    }
-});
+const finalResult = ref(null);
 
 async function verify(){
 

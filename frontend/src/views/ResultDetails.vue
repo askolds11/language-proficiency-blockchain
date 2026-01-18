@@ -98,18 +98,6 @@ function calculateTOEFL(reading, listening, speaking, writing) {
   return Math.round(total).toString();
 }
 
-const finalResult = computed(() => {
-    if (testData.value.writtingScore && testData.value.listeningScore && testData.value.readingScore && testData.value.speakingScore) {
-        if (testData.value.type === 'IELTS') {
-            calculateIELTS(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
-        } else {
-            calculateTOEFL(Number(testData.value.writtingScore),Number(testData.value.listeningScore),Number(testData.value.readingScore),Number(testData.value.speakingScore));
-        }
-    } else {
-        return '-';
-    }
-});
-
 const showCode = ref(false);
 
 async function generate(){
@@ -164,6 +152,7 @@ function toDateTimeOffset(date = new Date()) {
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`;
 }
+const finalResult = ref(null);
 
 onMounted(async () => {
 
@@ -178,6 +167,17 @@ const resp = await fetch("http://localhost:5001/api/internal/test-results/my", {
     const data = await resp.json();
 
     testData.value= data.find((obj) => obj.testResultId === route.params.entityId);
+testData.value.readingScore = testData.value.score[0];
+testData.value.writtingScore = testData.value.score[1];
+testData.value.speakingScore = testData.value.score[2];
+testData.value.listeningScore = testData.value.score[3];
+
+if(testData.value.testName === 'IELTS'){
+  finalResult.value = calculateIELTS(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+} else {
+  finalResult.value = calculateTOEFL(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+}
+
     minDate.value = toDateTimeOffset();
 });
 

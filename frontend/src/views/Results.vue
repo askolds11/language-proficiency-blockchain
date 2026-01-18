@@ -21,6 +21,23 @@ async function toDetails(actionId, itemId) {
 const items = ref([]);
 const isLoading = ref(false);
 
+function calculateIELTS(listening, reading, writing, speaking) {
+
+  const average = (listening + reading + writing + speaking) / 4;
+
+  const result = Math.round(average * 2) / 2;
+  return result.toString();
+}
+
+function calculateTOEFL(reading, listening, speaking, writing) {
+  const total = reading + listening + speaking + writing;
+
+  // Ensure final score is an integer
+  return Math.round(total).toString();
+}
+
+
+
 onMounted(async () => {
   isLoading.value=true;
    const resp = await fetch("http://localhost:5001/api/internal/test-results/my", {
@@ -37,7 +54,7 @@ onMounted(async () => {
     items.value.push({
     id: item.testResultId,
     label: `${item.testName} - ${lxDateUtils.formatDate(item.timestamp)}`,
-    description: `Full score: ${item.score}`,
+    description: `Full score: ${item.testName === 'IELTS' ? calculateIELTS(item.score[0],item.score[1],item.score[2],item.score[3]) : calculateTOEFL(item.score[0],item.score[1],item.score[2],item.score[3])}`,
     clickable: true,
   });
 });
