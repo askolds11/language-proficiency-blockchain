@@ -39,49 +39,41 @@ const modalData = ref({
 const actionDefinitions = computed(() => {
   const actions = [];
 
-if (authStore.session.roles === 'Verificator') {
- actions.push({
-    id: 'verify',
-    name: 'Verify',
-    icon: 'check',
-    kind: 'tertiary',
-  })
-}
+  if (authStore.session.roles === 'Verificator') {
+    actions.push({
+        id: 'verify',
+        name: 'Verify',
+        icon: 'check',
+        kind: 'tertiary',
+      })
+  }
 
-if (authStore.session.roles === 'Student') {
- actions.push({
-    id: 'generate',
-    name: 'Get share code',
-    icon: 'share',
-    kind: 'tertiary',
-  })
-}
-
-
+  if (authStore.session.roles === 'Student') {
+  actions.push({
+      id: 'generate',
+      name: 'Get share code',
+      icon: 'share',
+      kind: 'tertiary',
+    })
+  }
   actions.push({
     id: 'back',
     name: 'Back',
     icon: 'back',
     kind: 'primary',
   })
-
-
-
- return actions;
+  return actions;
 });
 
 function buttonClicked(actionId){
-if (actionId ==='back') {
-  router.push({ name: 'results' });
-} else if (actionId === 'verify') {
- //TODO Verify call
-} else if (actionId === 'generate') {
-  modalData.value.expiration = null;
-  modalData.value.code = null;
-  showCode.value = false;
-sharingModal.value.open();
-}
-
+  if (actionId ==='back') {
+    router.push({ name: 'results' });
+  } else if (actionId === 'generate') {
+    modalData.value.expiration = null;
+    modalData.value.code = null;
+    showCode.value = false;
+    sharingModal.value.open();
+  }
 }
 
 function calculateIELTS(listening, reading, writing, speaking) {
@@ -152,11 +144,12 @@ function toDateTimeOffset(date = new Date()) {
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`;
 }
+
 const finalResult = ref(null);
 
 onMounted(async () => {
 
-const resp = await fetch("http://localhost:5001/api/internal/test-results/my", {
+  const resp = await fetch("http://localhost:5001/api/internal/test-results/my", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${authStore.session.token}`,
@@ -167,16 +160,16 @@ const resp = await fetch("http://localhost:5001/api/internal/test-results/my", {
     const data = await resp.json();
 
     testData.value= data.find((obj) => obj.testResultId === route.params.entityId);
-testData.value.readingScore = testData.value.score[0];
-testData.value.writtingScore = testData.value.score[1];
-testData.value.speakingScore = testData.value.score[2];
-testData.value.listeningScore = testData.value.score[3];
+    testData.value.readingScore = testData.value.score[0];
+    testData.value.writtingScore = testData.value.score[1];
+    testData.value.speakingScore = testData.value.score[2];
+    testData.value.listeningScore = testData.value.score[3];
 
-if(testData.value.testName === 'IELTS'){
-  finalResult.value = calculateIELTS(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
-} else {
-  finalResult.value = calculateTOEFL(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
-}
+    if (testData.value.testName === 'IELTS'){
+      finalResult.value = calculateIELTS(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+    } else {
+      finalResult.value = calculateTOEFL(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+    }
 
     minDate.value = toDateTimeOffset();
 });

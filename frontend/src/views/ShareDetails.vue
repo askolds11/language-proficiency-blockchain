@@ -14,9 +14,6 @@ import useNotifyStore from '@/stores/useNotifyStore';
 const notifications = useNotifyStore();
 const authStore = useAuthStore();
 const router = useRouter();
-const route = useRoute();
-
-const sharingModal = ref({});
 
 const testData = ref({
     code: null,
@@ -32,11 +29,6 @@ const testData = ref({
     resultInputterCode: null,
   }
 );
-
-const modalData = ref({
-  expiration:null,
-  code:null,
-})
 
 const actionDefinitions = computed(() => {
   const actions = [];
@@ -92,17 +84,15 @@ async function getResults(){
       testData.value.name = `${selectedStudent.value.name} ${selectedStudent.value.surname}`;
 
       testData.value.readingScore = testData.value.score[0];
-testData.value.writtingScore = testData.value.score[1];
-testData.value.speakingScore = testData.value.score[2];
-testData.value.listeningScore = testData.value.score[3];
+      testData.value.writtingScore = testData.value.score[1];
+      testData.value.speakingScore = testData.value.score[2];
+      testData.value.listeningScore = testData.value.score[3];
 
-if(testData.value.testName === 'IELTS'){
-  finalResult.value = calculateIELTS(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
-} else {
-  finalResult.value = calculateTOEFL(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
-}
-
-
+      if (testData.value.testName === 'IELTS'){
+        finalResult.value = calculateIELTS(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+      } else {
+        finalResult.value = calculateTOEFL(testData.value.score[0],testData.value.score[1],testData.value.score[2],testData.value.score[3])
+      }
     } else {
       console.log("Request failed with code:", resp.status);
       notifications.pushError(`No test available for code ${testData.value.code}`);
@@ -110,14 +100,13 @@ if(testData.value.testName === 'IELTS'){
 }
 
 function buttonClicked(actionId){
-if (actionId ==='back') {
-  router.push({ name: 'dashboard' });
-} else if (actionId === 'verify') {
- verify()
-} else if (actionId === 'get') {
-  getResults();
-}
-
+  if (actionId ==='back') {
+    router.push({ name: 'dashboard' });
+  } else if (actionId === 'verify') {
+  verify()
+  } else if (actionId === 'get') {
+    getResults();
+  }
 }
 
 function calculateIELTS(listening, reading, writing, speaking) {
@@ -181,8 +170,6 @@ const resp = await fetch("http://localhost:5001/api/internal/students", {
 });
 
 const data = await resp.json();
-
-
 
 data.forEach(item => {
   students.value.push({

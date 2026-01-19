@@ -17,62 +17,18 @@ const isLoading = ref(false);
 async function authorize() {
 isLoading.value = true;
     try {
-    // Send login request
-
-    //Student
-    /*
     const resp = await fetch("http://localhost:5001/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: "test@test.com",
-        password: "password123"
-      })
-    });
-*/
-/*
-const resp = await fetch("http://localhost:5001/api/auth/login", {
-// Operator
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: "org@test.com",
-        password: "password123"
-      })
-    });
-    */
-/*
-//Verificator
-    const resp = await fetch("http://localhost:5001/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: "ver@test.com",
-        password: "password123"
-      })
-    }); */
-    // Read response body as JSON
-
-const resp = await fetch("http://localhost:5001/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        email: user.value.email,
-        password: user.value.password
-      })
-    }); 
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: user.value.email,
+            password: user.value.password
+          })
+        }); 
 
     const data = await resp.json();
-
-    console.log("Raw response:", data);
 
     if (!resp.ok) {
       console.error("Login failed", data);
@@ -88,8 +44,6 @@ const resp = await fetch("http://localhost:5001/api/auth/login", {
     authStore.session.roles = data.roles[0];
     authStore.session.expiresAt = data.expiresAt;
 
-    console.log("Auth store:", authStore.session);
-
     // Navigate to dashboard
     router.push({ name: 'dashboard' });
 
@@ -98,38 +52,12 @@ const resp = await fetch("http://localhost:5001/api/auth/login", {
   }
 
   isLoading.value = false;
-/*
-fetch("http://localhost:5001/api/auth/register", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    email: "ver@test.com",
-    password: "password123"
-  })
-});
-
-
-fetch("http://localhost:5001/api/internal/assign-role", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    userId: "640d4231-0ed2-4f00-8959-1cc69c2bb3fa",
-    role: "Verificator"
-  })
-});
-*/
 }
 
 onMounted(async () => {
-
-
- if(authStore.session.st === 'authorized') {
-  router.push({ name: 'dashboard' });
- }
+  if (authStore.session.st === 'authorized') {
+    router.push({ name: 'dashboard' });
+  }
 });
 
 </script>

@@ -14,13 +14,11 @@ import useNotifyStore from '@/stores/useNotifyStore';
 const notifications = useNotifyStore();
 const authStore = useAuthStore();
 const router = useRouter();
-const route = useRoute();
 
 const testData = ref({
     code: null,
   }
 );
-
 
 const actionDefinitions = computed(() => {
   const actions = [];
@@ -45,17 +43,14 @@ if (authStore.session.roles === 'Student') {
 });
 
 function buttonClicked(actionId){
-if (actionId ==='back') {
-  router.push({ name: 'results' });
-} else if (actionId === 'revoke') {
- revoke()
+  if (actionId ==='back') {
+    router.push({ name: 'results' });
+  } else if (actionId === 'revoke') {
+    revoke()
+  }
 }
-
-}
-
 
 async function revoke(){
-
 
   const resp = await fetch(`http://localhost:5001/api/internal/test-results/share/${testData.value.code}`, {
       method: "DELETE",

@@ -1,18 +1,11 @@
 <script setup>
-import { shallowRef, onMounted , ref } from 'vue';
+import { onMounted , ref } from 'vue';
 import { LxList, LxForm, LxRow, lxDateUtils } from '@wntr/lx-ui';
 import useAuthStore from '@/stores/useAuthStore';
-import useAppStore from '@/stores/useAppStore';
 import { useRouter } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import useViewStore from '@/stores/useViewStore';
 
-const loading = shallowRef(true);
-const busy = shallowRef(false);
 const authStore = useAuthStore();
 const router = useRouter();
-const appStore = useAppStore();
-const { t } = useI18n();
 
 async function toDetails(actionId, itemId) {
  router.push({ name: 'resultDetails', params:{entityId:itemId}  });
@@ -36,10 +29,8 @@ function calculateTOEFL(reading, listening, speaking, writing) {
   return Math.round(total).toString();
 }
 
-
-
 onMounted(async () => {
-  isLoading.value=true;
+   isLoading.value=true;
    const resp = await fetch("http://localhost:5001/api/internal/test-results/my", {
       method: "GET",
       headers: {
@@ -48,17 +39,18 @@ onMounted(async () => {
       },
     });
 
-    const data = await resp.json();
+  const data = await resp.json();
 
-    data.forEach(item => {
+  data.forEach(item => {
     items.value.push({
     id: item.testResultId,
     label: `${item.testName} - ${lxDateUtils.formatDate(item.timestamp)}`,
     description: `Full score: ${item.testName === 'IELTS' ? calculateIELTS(item.score[0],item.score[1],item.score[2],item.score[3]) : calculateTOEFL(item.score[0],item.score[1],item.score[2],item.score[3])}`,
     clickable: true,
-  });
-});
-isLoading.value=false;
+      });
+    });
+    
+  isLoading.value=false;
 });
 </script>
 <template>

@@ -28,7 +28,6 @@ const testData = ref({
   }
 );
 
-
 const invalidFields = ref({});
 
 const actionDefinitions = [
@@ -54,43 +53,39 @@ function nullAllExcept(obj) {
   });
 }
 
-
 async function buttonClicked(actionId){
-if (actionId === 'save') {
-  if (validate()) {
-    //TODO Save call
+  if (actionId === 'save') {
+    if (validate()) {
+      const localDate = new Date(testData.value.dateOfExamination);
+      let randomId = crypto.randomUUID();
+      const resp = await fetch("http://localhost:5001/api/internal/test-result", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authStore.session.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          blockId: randomId,
+          testResultId: randomId,
+          testId: testData.value.type,
+          studentId: testData.value.key,
+          score: [Number(testData.value.readingScore), Number(testData.value.writtingScore), Number(testData.value.speakingScore), Number(testData.value.listeningScore)],
+          timestamp: localDate.toISOString()
+        })
+      });
 
-    const localDate = new Date(testData.value.dateOfExamination);
-    let randomId = crypto.randomUUID();
-    const resp = await fetch("http://localhost:5001/api/internal/test-result", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${authStore.session.token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        blockId: randomId,
-        testResultId: randomId,
-        testId: testData.value.type,
-        studentId: testData.value.key,
-        score: [Number(testData.value.readingScore), Number(testData.value.writtingScore), Number(testData.value.speakingScore), Number(testData.value.listeningScore)],
-        timestamp: localDate.toISOString()
-      })
-    });
-
-    if (resp.ok) {
-      console.log("Request succeeded!");
-      notifications.pushSuccess("Result saved!");
-      router.push({ name: 'dashboard' });
-    } else {
-      console.log("Request failed with code:", resp.status);
-      notifications.pushError("Internal server error.");
+      if (resp.ok) {
+        console.log("Request succeeded!");
+        notifications.pushSuccess("Result saved!");
+        router.push({ name: 'dashboard' });
+      } else {
+        console.log("Request failed with code:", resp.status);
+        notifications.pushError("Internal server error.");
+      }
     }
-
+  } else if (actionId === 'cancel') {
+    nullAllExcept(testData);
   }
-} else if (actionId === 'cancel') {
-  nullAllExcept(testData);
-}
 }
 
 const testTypes = [
@@ -104,10 +99,7 @@ const testTypes = [
     },
 ]
 
-
-
 function validate(){
-
     invalidFields.value = {};
     let isValid = true;
 
@@ -150,10 +142,10 @@ function validate(){
 }
 
 const mask = computed(() => {
-if (testData.value.type === 'IELTS') {
- return 'decimal';
-}
- return 'integer';
+  if (testData.value.type === 'IELTS') {
+  return 'decimal';
+  }
+  return 'integer';
 });
 
 function calculateIELTS(listening, reading, writing, speaking) {
@@ -218,19 +210,15 @@ const resp = await fetch("http://localhost:5001/api/internal/students", {
 
 const data = await resp.json();
 
-
-
 data.forEach(item => {
   students.value.push({
     id: item.id,
-    name: `${item.id} - ${item.name} ${item.surname}`,
+    name: `${item.name} ${item.surname}`,
   });
 });
 
 testData.value.type = testTypes[0].id;
-
-maxDate.value = toDateTimeOffset()
-
+maxDate.value = toDateTimeOffset();
 
 });
 
